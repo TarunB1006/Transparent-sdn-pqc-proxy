@@ -1,0 +1,14 @@
+# Versions used for every result in evaluation/results/ (Python 3.10.12).
+cryptography==48.0.0
+liboqs-python==0.15.0
+PyYAML==6.0.3
+psutil==7.2.2
+prometheus-client==0.25.0
+numpy==2.2.6
+scipy==1.15.3
+matplotlib==3.10.9
+networkx==3.4.2
+eventlet==0.33.3
+pytest==9.0.3
+# Ryu 4.34 from source (the PyPI release does not install on Python 3.10)
+ryu @ git+https://github.com/faucetsdn/ryu.git@d6cda4f427ff8de82b94c58aa826824a106014c2

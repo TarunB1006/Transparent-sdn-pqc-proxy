@@ -1,0 +1,12 @@
+table,section,algorithm,pk_bytes,sig_bytes,keygen_us,sign_us,verify_us,security_bits,quantum_safe,sign_overhead_vs_ed25519_pct,n_sessions,peak_memory_kb,per_session_kb,note
+10,10A_dsa,Ed25519,32,64,73.55,75.63,252.34,128,False,,,,,
+10,10A_dsa,ML-DSA-44,1312,2420,176.56,656.16,190.37,128,True,768.0,,,,
+10,10A_dsa,ML-DSA-65,1952,3309,316.14,1100.77,296.55,192,True,1355.0,,,,
+10,10A_dsa,ML-DSA-87,2592,4627,357.04,939.39,367.34,256,True,1142.0,,,,
+10,10B_memory,,,,,,,,,,1,1.88,1.88,
+10,10B_memory,,,,,,,,,,5,5.64,1.13,
+10,10B_memory,,,,,,,,,,10,10.3,1.03,
+10,10B_memory,,,,,,,,,,20,19.53,0.98,k=4 fat-tree
+10,10B_memory,,,,,,,,,,50,47.23,0.94,
+10,10B_memory,,,,,,,,,,100,93.46,0.93,
+10,10B_memory,,,,,,,,,,200,185.98,0.93,

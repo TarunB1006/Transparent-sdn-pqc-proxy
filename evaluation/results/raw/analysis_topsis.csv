@@ -1,0 +1,4 @@
+rank,alternative,score
+1,ML-KEM-512,0.9205
+2,ML-KEM-768,0.853
+3,ML-KEM-1024,0.0

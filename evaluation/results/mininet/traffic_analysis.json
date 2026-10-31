@@ -1,0 +1,74 @@
+[
+ {
+  "accuracy": 0.8473333333333334,
+  "majority_baseline": 0.226,
+  "mutual_info_bits": 2.228916319758854,
+  "label_entropy_bits": 2.318526449235028,
+  "distinct_sizes": 368,
+  "n": 1500,
+  "mean_wire_bytes": 457.87533333333334,
+  "config": "plain",
+  "sent": 1500,
+  "matched": 1500
+ },
+ {
+  "accuracy": 0.8473333333333334,
+  "majority_baseline": 0.226,
+  "mutual_info_bits": 2.228916319758854,
+  "label_entropy_bits": 2.318526449235028,
+  "distinct_sizes": 368,
+  "n": 1500,
+  "mean_wire_bytes": 479.87533333333334,
+  "config": "tls_classical",
+  "sent": 1500,
+  "matched": 1500
+ },
+ {
+  "accuracy": 0.8473333333333334,
+  "majority_baseline": 0.226,
+  "mutual_info_bits": 2.228916319758854,
+  "label_entropy_bits": 2.318526449235028,
+  "distinct_sizes": 368,
+  "n": 1500,
+  "mean_wire_bytes": 479.87533333333334,
+  "config": "pqtls_l5",
+  "sent": 1500,
+  "matched": 1500
+ },
+ {
+  "accuracy": 0.6046666666666667,
+  "majority_baseline": 0.226,
+  "mutual_info_bits": 1.3356396246237394,
+  "label_entropy_bits": 2.318526449235028,
+  "distinct_sizes": 5,
+  "n": 1500,
+  "mean_wire_bytes": 624.4106666666667,
+  "config": "proposed",
+  "sent": 1500,
+  "matched": 1500
+ },
+ {
+  "accuracy": 0.41133333333333333,
+  "majority_baseline": 0.226,
+  "mutual_info_bits": 0.6916064316928277,
+  "label_entropy_bits": 2.318526449235028,
+  "distinct_sizes": 2,
+  "n": 1500,
+  "mean_wire_bytes": 1251.7813333333334,
+  "config": "proposed_pad1024",
+  "sent": 1500,
+  "matched": 1500
+ },
+ {
+  "accuracy": 0.226,
+  "majority_baseline": 0.226,
+  "mutual_info_bits": 0.0,
+  "label_entropy_bits": 2.318526449235028,
+  "distinct_sizes": 1,
+  "n": 1500,
+  "mean_wire_bytes": 2086.0,
+  "config": "proposed_pad2048",
+  "sent": 1500,
+  "matched": 1500
+ }
+]

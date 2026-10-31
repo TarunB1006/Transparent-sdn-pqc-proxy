@@ -1,0 +1,7 @@
+f_statistic,p_value,significant,operation,comparison
+0,1.0,False,dsa_keygen,classical_vs_pqc
+0,1.0,False,dsa_sign,classical_vs_pqc
+0,1.0,False,dsa_verify,classical_vs_pqc
+1.1005,0.353349,False,kem_decap,classical_vs_pqc
+0.89,0.398906,False,kem_encap,classical_vs_pqc
+0.5688,0.492698,False,kem_keygen,classical_vs_pqc

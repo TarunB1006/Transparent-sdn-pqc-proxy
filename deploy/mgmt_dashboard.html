@@ -1,0 +1,2158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PQC-SDN Management Plane</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: rgba(17,24,39,0.7);
+  --border: rgba(75,85,99,0.4);
+  --txt: #f3f4f6;
+  --txt2: #9ca3af;
+  --txt3: #6b7280;
+  --cyan: #06b6d4;
+  --green: #10b981;
+  --purple: #8b5cf6;
+  --orange: #f59e0b;
+  --red: #ef4444;
+  --blue: #3b82f6;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--txt);
+  flex: 1;
+}
+.conn-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  transition: all 0.3s;
+}
+.conn-pill.connected { border-color: var(--green); color: var(--green); }
+.conn-pill.disconnected { border-color: var(--red); color: var(--red); }
+.conn-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.conn-pill.connected .conn-dot { animation: pulse-dot 2s infinite; }
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+}
+.refresh-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--txt2);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+.refresh-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ── Layout ── */
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 16px 0;
+}
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--txt3);
+  padding: 12px 16px 4px;
+}
+.nav-section-label:first-child { padding-top: 0; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  color: var(--txt2);
+  font-size: 13px;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  user-select: none;
+}
+.nav-item:hover { color: var(--txt); background: rgba(255,255,255,0.04); }
+.nav-item.active {
+  color: var(--cyan);
+  border-left-color: var(--cyan);
+  background: rgba(6,182,212,0.08);
+}
+.nav-badge {
+  margin-left: auto;
+  background: rgba(139,92,246,0.25);
+  color: var(--purple);
+  border: 1px solid rgba(139,92,246,0.4);
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* ── Main ── */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  background: var(--bg);
+}
+.panel { display: none; }
+.panel.active { display: block; }
+.panel-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--txt);
+  margin-bottom: 20px;
+}
+.panel-subtitle {
+  font-size: 13px;
+  color: var(--txt2);
+  margin-bottom: 16px;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+}
+.card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--txt3);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 12px;
+}
+
+/* ── Stat Cards ── */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+.stat-label { font-size: 11px; color: var(--txt3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+.stat-value { font-size: 26px; font-weight: 700; color: var(--txt); font-family: 'JetBrains Mono', monospace; }
+.stat-sub { font-size: 11px; color: var(--txt2); margin-top: 4px; }
+
+/* ── Metric Cards (security panel) ── */
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+.metric-card {
+  background: var(--bg2);
+  border-radius: 10px;
+  padding: 16px;
+  border-left: 3px solid var(--border);
+  transition: border-color 0.2s;
+}
+.metric-card .m-icon { font-size: 20px; margin-bottom: 8px; }
+.metric-card .m-label { font-size: 11px; color: var(--txt3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+.metric-card .m-value { font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.metric-card .m-unit { font-size: 11px; color: var(--txt2); margin-top: 2px; }
+.metric-card.color-red { border-left-color: var(--red); }
+.metric-card.color-red .m-value { color: var(--red); }
+.metric-card.color-orange { border-left-color: var(--orange); }
+.metric-card.color-orange .m-value { color: var(--orange); }
+.metric-card.color-cyan { border-left-color: var(--cyan); }
+.metric-card.color-cyan .m-value { color: var(--cyan); }
+.metric-card.color-green { border-left-color: var(--green); }
+.metric-card.color-green .m-value { color: var(--green); }
+
+/* ── Tables ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--txt3);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(75,85,99,0.2);
+  color: var(--txt);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* ── Benchmark tables ── */
+.bench-table th, .bench-table td {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+.bench-table .row-512 td { color: var(--green); }
+.bench-table .row-768 td { color: var(--purple); }
+.bench-table .row-1024 td { color: var(--cyan); }
+.bench-table .row-total td { font-weight: 700; color: var(--txt); }
+.bench-table td:first-child { color: var(--txt); font-weight: 500; }
+
+/* ── Progress bar ── */
+.progress-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.progress-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--cyan);
+  transition: width 0.4s ease;
+}
+.progress-label { font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--txt2); min-width: 42px; text-align: right; }
+
+/* ── Overhead bar (inline) ── */
+.oh-bar { display: inline-flex; align-items: center; gap: 6px; }
+.oh-track { width: 60px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+.oh-fill { height: 100%; background: var(--orange); border-radius: 3px; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.badge-green { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+.badge-red { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+.badge-orange { background: rgba(245,158,11,0.15); color: var(--orange); border: 1px solid rgba(245,158,11,0.3); }
+.badge-cyan { background: rgba(6,182,212,0.15); color: var(--cyan); border: 1px solid rgba(6,182,212,0.3); }
+.badge-purple { background: rgba(139,92,246,0.15); color: var(--purple); border: 1px solid rgba(139,92,246,0.3); }
+.badge-blue { background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+
+/* ── Algorithm Policy ── */
+.mode-toggle { display: flex; gap: 8px; margin-bottom: 20px; }
+.mode-btn {
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--txt2);
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.mode-btn.active-mode { border-color: var(--cyan); color: var(--cyan); background: rgba(6,182,212,0.1); }
+.algo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.algo-card {
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg3);
+  text-align: center;
+}
+.algo-card:hover { border-color: rgba(255,255,255,0.3); }
+.algo-card.selected-algo { background: rgba(6,182,212,0.08); }
+.algo-card .a-name { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.algo-card .a-desc { font-size: 11px; color: var(--txt2); }
+.algo-card .a-badge { font-size: 10px; margin-top: 6px; }
+.algo-card.cyan-card { border-color: rgba(6,182,212,0.5); }
+.algo-card.cyan-card.selected-algo { border-color: var(--cyan); box-shadow: 0 0 12px rgba(6,182,212,0.2); }
+.algo-card.purple-card { border-color: rgba(139,92,246,0.5); }
+.algo-card.purple-card.selected-algo { border-color: var(--purple); box-shadow: 0 0 12px rgba(139,92,246,0.2); }
+.algo-card.green-card { border-color: rgba(16,185,129,0.5); }
+.algo-card.green-card.selected-algo { border-color: var(--green); box-shadow: 0 0 12px rgba(16,185,129,0.2); }
+.algo-card.orange-card { border-color: rgba(245,158,11,0.5); }
+.algo-card.orange-card.selected-algo { border-color: var(--orange); box-shadow: 0 0 12px rgba(245,158,11,0.2); }
+.warning-box {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--red);
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+.apply-btn {
+  background: var(--cyan);
+  color: #000;
+  border: none;
+  padding: 9px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  transition: all 0.2s;
+  margin-right: 8px;
+}
+.apply-btn:hover { background: #0891b2; }
+.apply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.reset-btn {
+  background: transparent;
+  color: var(--txt2);
+  border: 1px solid var(--border);
+  padding: 9px 24px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.reset-btn:hover { border-color: var(--txt2); color: var(--txt); }
+
+/* ── Benchmark panel ── */
+.run-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(16,185,129,0.15);
+  border: 1px solid rgba(16,185,129,0.4);
+  color: var(--green);
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s;
+  margin-bottom: 12px;
+}
+.run-btn:hover { background: rgba(16,185,129,0.25); border-color: var(--green); }
+.run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.run-btn .spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(16,185,129,0.3);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: none;
+}
+.run-btn.running .spinner { display: block; }
+.run-note { font-size: 12px; color: var(--txt3); margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.file-list { margin-top: 0; }
+.load-file-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--cyan);
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+.load-file-btn:hover { border-color: var(--cyan); background: rgba(6,182,212,0.08); }
+
+/* ── Chart containers ── */
+.charts-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+.charts-row-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 20px; }
+.chart-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+.chart-title { font-size: 12px; font-weight: 600; color: var(--txt3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 12px; }
+.chart-wrap svg { display: block; width: 100%; }
+.chart-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+.chart-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--txt2); }
+.chart-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Events ── */
+.filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-btn {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--txt2);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.15s;
+}
+.filter-btn:hover { border-color: var(--txt2); color: var(--txt); }
+.filter-btn.active-filter { border-color: var(--cyan); color: var(--cyan); background: rgba(6,182,212,0.08); }
+.event-list { max-height: 500px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.event-item {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: 160px auto 1fr;
+  gap: 12px;
+  align-items: start;
+  font-size: 12px;
+}
+.event-ts { font-family: 'JetBrains Mono', monospace; color: var(--txt3); font-size: 11px; }
+.event-detail { color: var(--txt2); font-family: 'JetBrains Mono', monospace; font-size: 11px; word-break: break-all; }
+
+/* ── Topology ── */
+.topo-wrap { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; overflow: hidden; }
+.topo-svg { display: block; margin: 0 auto; max-width: 100%; }
+.topo-legend { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--txt2); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* ── Quick Actions ── */
+.quick-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.qa-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--txt2);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.qa-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ── KV pairs ── */
+.kv-list { display: flex; flex-direction: column; gap: 8px; }
+.kv-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(75,85,99,0.15); }
+.kv-row:last-child { border-bottom: none; }
+.kv-key { font-size: 12px; color: var(--txt3); }
+.kv-val { font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--txt); }
+
+/* ── Two-col layout ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+
+/* ── Config table ── */
+.config-section { margin-bottom: 24px; }
+.config-section h3 { font-size: 14px; font-weight: 600; color: var(--txt2); margin-bottom: 10px; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s;
+  pointer-events: none;
+  max-width: 340px;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.ok { background: rgba(16,185,129,0.9); color: #fff; border: 1px solid var(--green); }
+.toast.err { background: rgba(239,68,68,0.9); color: #fff; border: 1px solid var(--red); }
+
+/* ── Loading ── */
+.loading {
+  color: var(--txt3);
+  font-size: 13px;
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.loading::after {
+  content: '';
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ── Misc ── */
+.section-gap { margin-bottom: 20px; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+.text-red { color: var(--red); }
+.text-green { color: var(--green); }
+.text-cyan { color: var(--cyan); }
+.text-orange { color: var(--orange); }
+.text-purple { color: var(--purple); }
+.no-data { color: var(--txt3); font-size: 13px; font-style: italic; padding: 12px 0; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-title">&#9881;&#65039; PQC-SDN Management Plane</div>
+  <div class="conn-pill disconnected" id="conn-pill">
+    <div class="conn-dot"></div>
+    <span id="conn-text">Connecting&hellip;</span>
+  </div>
+  <button class="refresh-btn" onclick="refreshCurrent()">&#8635; Refresh</button>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="nav-section-label">Network</div>
+    <div class="nav-item active" id="nav-overview" onclick="show('overview', this)">&#127968; Overview</div>
+    <div class="nav-item" id="nav-topology" onclick="show('topology', this)">&#127760; Topology</div>
+
+    <div class="nav-section-label">Security Policy</div>
+    <div class="nav-item" id="nav-algo-policy" onclick="show('algo-policy', this)">&#128272; Algorithm Policy</div>
+    <div class="nav-item" id="nav-flow-policy" onclick="show('flow-policy', this)">&#128257; Flow Policy</div>
+    <div class="nav-item" id="nav-dscp-table" onclick="show('dscp-table', this)">&#128203; DSCP Table</div>
+
+    <div class="nav-section-label">Sessions</div>
+    <div class="nav-item" id="nav-sessions" onclick="show('sessions', this)">&#128279; Active Sessions</div>
+
+    <div class="nav-section-label">Research</div>
+    <div class="nav-item" id="nav-benchmarks" onclick="show('benchmarks', this)">&#129514; Benchmarks <span class="nav-badge">Table 1-4</span></div>
+
+    <div class="nav-section-label">Events</div>
+    <div class="nav-item" id="nav-security-events" onclick="show('security-events', this)">&#128737;&#65039; Security Events</div>
+
+    <div class="nav-section-label">System</div>
+    <div class="nav-item" id="nav-controllers" onclick="show('controllers', this)">&#9881; Controllers</div>
+    <div class="nav-item" id="nav-sysconfig" onclick="show('sysconfig', this)">&#9881;&#65039; Configuration</div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- ── OVERVIEW ── -->
+    <div id="panel-overview" class="panel active">
+      <div class="panel-title">Overview</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Active Sessions</div>
+          <div class="stat-value" id="ov-sessions">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Connected Switches</div>
+          <div class="stat-value" id="ov-switches">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">KEM Variant</div>
+          <div class="stat-value" style="font-size:16px;line-height:1.4;" id="ov-policy">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Security Events</div>
+          <div class="stat-value" id="ov-events">—</div>
+        </div>
+      </div>
+
+      <!-- Global KEM Override — one-click threat escalation, always visible -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-title" style="display:flex;align-items:center;gap:10px;">
+          &#128272; Global KEM Override
+          <span id="ov-kem-badge" style="font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(6,182,212,0.15);color:var(--cyan);font-weight:500;font-family:'JetBrains Mono',monospace;">Loading…</span>
+        </div>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:12px;">Escalate or de-escalate the PQC key-exchange strength across all switches. Triggers a re-handshake. Symmetric cipher is always DSCP-driven per flow.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="qa-btn" id="ov-km-ML-KEM-1024" onclick="ovSelectKem('ML-KEM-1024')" style="font-family:'JetBrains Mono',monospace;font-size:12px;">ML-KEM-1024 &#128274;</button>
+          <button class="qa-btn" id="ov-km-ML-KEM-768"  onclick="ovSelectKem('ML-KEM-768')"  style="font-family:'JetBrains Mono',monospace;font-size:12px;">ML-KEM-768</button>
+          <button class="qa-btn" id="ov-km-ML-KEM-512"  onclick="ovSelectKem('ML-KEM-512')"  style="font-family:'JetBrains Mono',monospace;font-size:12px;">ML-KEM-512</button>
+        </div>
+        <div id="ov-kem-status" style="margin-top:8px;font-size:11px;color:var(--txt3);font-family:'JetBrains Mono',monospace;min-height:14px;"></div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Controller Resources</div>
+          <div class="kv-list" id="ov-resources"><div class="loading">Loading</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Quick Actions</div>
+          <div class="quick-actions">
+            <button class="qa-btn" onclick="show('algo-policy', document.getElementById('nav-algo-policy'))">&#128272; Algorithm Policy</button>
+            <button class="qa-btn" onclick="show('sessions', document.getElementById('nav-sessions'))">&#128279; Sessions</button>
+            <button class="qa-btn" onclick="show('benchmarks', document.getElementById('nav-benchmarks'))">&#129514; Run Benchmark</button>
+            <button class="qa-btn" onclick="show('security-events', document.getElementById('nav-security-events'))">&#128737; Events</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TOPOLOGY ── -->
+    <div id="panel-topology" class="panel">
+      <div class="panel-title">Network Topology
+        <span style="font-size:11px;color:var(--txt3);margin-left:12px;font-family:'JetBrains Mono',monospace;">Fat-Tree k=4 &nbsp;|&nbsp; core:4 &nbsp;agg:8 &nbsp;edge:8</span>
+      </div>
+      <!-- Tier capacity bar -->
+      <div class="card section-gap" id="tier-status-bar" style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:12px;color:var(--txt3);">Tier capacity:</span>
+        <span id="tier-core-status" style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--cyan);">Core 0/4</span>
+        <span id="tier-agg-status"  style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--purple);">Agg 0/8</span>
+        <span id="tier-edge-status" style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--green);">Edge 0/8</span>
+        <span id="tier-total-status" style="font-size:11px;color:var(--txt3);">0 / 20 total</span>
+      </div>
+      <div class="card section-gap" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span style="font-size:13px;color:var(--txt2);">Add switches:</span>
+        <input id="topo-count-input" type="number" min="1" max="20" value="1"
+          style="width:60px;background:var(--bg3);border:1px solid var(--border);color:var(--txt);padding:6px 10px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;">
+        <button class="qa-btn" onclick="connectSwitch()" style="border-color:var(--green);color:var(--green);">&#43; Connect</button>
+        <span style="font-size:12px;color:var(--txt3);">disconnect dpid:</span>
+        <input id="topo-disc-input" type="number" min="1" max="20" value="1"
+          style="width:70px;background:var(--bg3);border:1px solid var(--border);color:var(--txt);padding:6px 10px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;">
+        <button class="qa-btn" onclick="disconnectSwitch()" style="border-color:var(--red);color:var(--red);">&#8722; Disconnect</button>
+      </div>
+      <!-- Expand options shown when fat-tree is full -->
+      <div id="topo-expand-options" style="display:none;" class="card section-gap"></div>
+      <div class="card section-gap" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span style="font-size:13px;color:var(--txt2);">Link between dpids:</span>
+        <input id="link-a-input" type="number" min="1" max="20" value="1"
+          style="width:65px;background:var(--bg3);border:1px solid var(--border);color:var(--txt);padding:6px 10px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;">
+        <span style="color:var(--txt3);">&#8596;</span>
+        <input id="link-b-input" type="number" min="1" max="20" value="2"
+          style="width:65px;background:var(--bg3);border:1px solid var(--border);color:var(--txt);padding:6px 10px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;">
+        <button class="qa-btn" onclick="addLink()" style="border-color:var(--cyan);color:var(--cyan);">&#43; Link</button>
+        <button class="qa-btn" onclick="removeLink()" style="border-color:var(--orange);color:var(--orange);">&#8722; Link</button>
+      </div>
+      <div class="topo-wrap">
+        <svg id="topo-svg" class="topo-svg" width="700" height="340" viewBox="0 0 700 340">
+          <text x="350" y="175" text-anchor="middle" fill="#6b7280" font-size="13">Loading topology&hellip;</text>
+        </svg>
+      </div>
+      <div class="topo-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Controller</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div>ML-KEM-1024</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>ML-KEM-768</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>ML-KEM-512 (default)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--txt3)"></div>Unknown</div>
+      </div>
+    </div>
+
+    <!-- ── ALGORITHM POLICY ── -->
+    <div id="panel-algo-policy" class="panel">
+      <div class="panel-title">Algorithm Policy</div>
+      <div class="mode-toggle">
+        <button class="mode-btn active-mode" id="mode-manual" onclick="setMode('manual')">Manual Override</button>
+      </div>
+      <div id="algo-manual-section">
+        <div class="panel-subtitle">Override the global PQC KEM variant. All flows remain quantum-resistant — symmetric cipher is selected per-flow by DSCP.</div>
+        <div class="algo-grid">
+          <div class="algo-card cyan-card" id="ac-ML-KEM-1024" onclick="selectAlgo('ML-KEM-1024')">
+            <div class="a-name text-cyan">ML-KEM-1024</div>
+            <div class="a-desc">NIST PQC Level 5</div>
+            <div class="a-badge"><span class="badge badge-cyan">Max Security</span></div>
+          </div>
+          <div class="algo-card purple-card" id="ac-ML-KEM-768" onclick="selectAlgo('ML-KEM-768')">
+            <div class="a-name text-purple">ML-KEM-768</div>
+            <div class="a-desc">NIST PQC Level 3</div>
+            <div class="a-badge"><span class="badge badge-purple">Elevated</span></div>
+          </div>
+          <div class="algo-card green-card" id="ac-ML-KEM-512" onclick="selectAlgo('ML-KEM-512')">
+            <div class="a-name text-green">ML-KEM-512</div>
+            <div class="a-desc">NIST PQC Level 1</div>
+            <div class="a-badge"><span class="badge badge-green">Default</span></div>
+          </div>
+        </div>
+        <button class="apply-btn" onclick="applyPolicy()">Apply Policy</button>
+      </div>
+
+      <!-- Symmetric Cipher Override -->
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">Symmetric Cipher Override</div>
+        <div class="panel-subtitle" style="margin-bottom:12px;">Force all new flows to a specific cipher regardless of DSCP class. Default: DSCP-driven (per flow type).</div>
+        <div class="algo-grid">
+          <div class="algo-card cyan-card" id="cc-AES-256-GCM" onclick="selectCipher('AES-256-GCM')" style="cursor:pointer;">
+            <div class="a-name text-cyan">AES-256-GCM</div>
+            <div class="a-desc">FIPS 140-3, HW-accel</div>
+            <div class="a-badge"><span class="badge badge-cyan">Max Security</span></div>
+          </div>
+          <div class="algo-card purple-card" id="cc-ChaCha20-Poly1305" onclick="selectCipher('ChaCha20-Poly1305')" style="cursor:pointer;">
+            <div class="a-name text-purple" style="font-size:13px;">ChaCha20-Poly1305</div>
+            <div class="a-desc">SW-optimised, no AES-NI</div>
+            <div class="a-badge"><span class="badge badge-purple">Latency</span></div>
+          </div>
+          <div class="algo-card green-card" id="cc-AES-128-GCM" onclick="selectCipher('AES-128-GCM')" style="cursor:pointer;">
+            <div class="a-name text-green">AES-128-GCM</div>
+            <div class="a-desc">Balanced 128-bit</div>
+            <div class="a-badge"><span class="badge badge-green">Default</span></div>
+          </div>
+          <div class="algo-card" id="cc-auto" onclick="selectCipher('auto')" style="cursor:pointer;border:1px solid var(--border);">
+            <div class="a-name" style="color:var(--txt2);">Auto (DSCP)</div>
+            <div class="a-desc">Per-flow selection</div>
+            <div class="a-badge"><span class="badge" id="cc-auto-badge" style="background:rgba(255,255,255,0.08);color:var(--txt2);">Active</span></div>
+          </div>
+        </div>
+        <div id="cipher-status" style="margin-top:10px;font-size:12px;color:var(--txt2);font-family:'JetBrains Mono',monospace;"></div>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <div class="card-title">Current Live Policy</div>
+        <div class="kv-list" id="live-policy-info"><div class="loading">Loading</div></div>
+      </div>
+    </div>
+
+    <!-- ── FLOW POLICY ── -->
+    <div id="panel-flow-policy" class="panel">
+      <div class="panel-title">Flow Policy Assignment</div>
+      <div class="panel-subtitle">Assign a specific PQC algorithm to a traffic flow by src/dst IP, DSCP, and switch path.</div>
+      <div class="two-col section-gap">
+        <div class="card">
+          <div class="card-title">Assign Flow</div>
+          <div class="kv-list" style="gap:12px;">
+            <div class="kv-row">
+              <div class="kv-key">Source IP</div>
+              <input id="fp-src" type="text" placeholder="10.0.0.1"
+                style="background:var(--bg3);border:1px solid var(--border);color:var(--txt);padding:6px 10px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:12px;width:160px;">
+            </div>
+            <div class="kv-row">
+              <div class="kv-key">Dest IP</div>
+              <input id="fp-dst" type="text" placeholder="10.0.0.2"
+                style="background:var(--bg3);border:1px solid var(--border);color:var(--txt);padding:6px 10px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:12px;width:160px;">
+            </div>
+            <div class="kv-row">
+              <div class="kv-key">DSCP Value</div>
+              <select id="fp-dscp" style="background:var(--bg3);border:1px solid var(--border);color:var(--txt);padding:6px 10px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:12px;">
+                <option value="46">46 — EF (latency-sensitive)</option>
+                <option value="40">40 — CS5 (signalling)</option>
+                <option value="34">34 — AF41 (real-time)</option>
+                <option value="32">32 — CS4 (real-time)</option>
+                <option value="26">26 — AF31 (signalling)</option>
+                <option value="24">24 — CS3 (broadcast video)</option>
+                <option value="18">18 — AF21 (video)</option>
+                <option value="10">10 — AF11 (bulk)</option>
+                <option value="48">48 — CS6 (control plane)</option>
+                <option value="0">0 — BE (best effort)</option>
+              </select>
+            </div>
+            <div class="kv-row">
+              <div class="kv-key">Algorithm</div>
+              <select id="fp-algo" style="background:var(--bg3);border:1px solid var(--border);color:var(--txt);padding:6px 10px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:12px;">
+                <option value="auto">Auto (DSCP-driven cipher)</option>
+                <option value="ML-KEM-1024">ML-KEM-1024 (Level 5 — max security)</option>
+                <option value="ML-KEM-768">ML-KEM-768 (Level 3 — elevated)</option>
+                <option value="ML-KEM-512">ML-KEM-512 (Level 1 — default)</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:14px;">
+            <button class="apply-btn" onclick="assignFlow()">&#128257; Assign Flow</button>
+          </div>
+          <div id="fp-result" style="margin-top:10px;font-size:12px;color:var(--txt2);font-family:'JetBrains Mono',monospace;"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Active Flow Assignments</div>
+          <div class="table-wrap">
+            <table id="fp-flows-table">
+              <thead><tr><th>Src IP</th><th>Dst IP</th><th>DSCP</th><th>Algorithm</th><th>Path</th></tr></thead>
+              <tbody id="fp-flows-body"><tr><td colspan="5"><div class="loading">Loading</div></td></tr></tbody>
+            </table>
+          </div>
+          <button class="refresh-btn" style="margin-top:10px;" onclick="loadFlows()">&#8635; Refresh</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DSCP TABLE ── -->
+    <div id="panel-dscp-table" class="panel">
+      <div class="panel-title">DSCP &rarr; Algorithm Mapping</div>
+      <div class="card">
+        <div class="table-wrap">
+          <table id="dscp-table-el">
+            <thead><tr><th>DSCP Value</th><th>DSCP Name</th><th>Algorithm</th><th>Security Level</th></tr></thead>
+            <tbody><tr><td colspan="4"><div class="loading">Loading</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SESSIONS ── -->
+    <div id="panel-sessions" class="panel">
+      <div class="panel-title">Active Sessions</div>
+      <div class="card">
+        <div class="table-wrap">
+          <table id="sessions-table">
+            <thead><tr><th>Switch DPID</th><th>Role</th><th>Algorithm</th><th>DSCP</th><th>Peer</th><th>Status</th></tr></thead>
+            <tbody><tr><td colspan="6"><div class="loading">Loading</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ── BENCHMARKS ── -->
+    <div id="panel-benchmarks" class="panel">
+      <div class="panel-title">Research Benchmarks</div>
+      <div class="card section-gap">
+        <div class="card-title">Run Benchmark</div>
+        <button class="run-btn" id="run-btn" onclick="runBenchmark()">
+          <div class="spinner"></div>
+          <span id="run-btn-label">&#9654; Run Benchmark</span>
+        </button>
+        <div class="run-note">CLI: PYTHONPATH=src python scripts/benchmark.py</div>
+        <div style="font-size:12px;color:var(--txt3);margin-top:4px;">Results saved to results/ folder</div>
+      </div>
+
+      <div class="card section-gap file-list">
+        <div class="card-title">Saved Benchmark Runs</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Timestamp</th><th>Tables</th><th>Platform</th><th>liboqs</th><th>Actions</th></tr></thead>
+            <tbody id="bench-files-body"><tr><td colspan="5"><div class="loading">Loading</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="bench-results" style="display:none">
+        <!-- Table 1 -->
+        <div class="card section-gap" id="bench-t1-wrap">
+          <div class="card-title">Table 1 &mdash; ML-KEM Operations</div>
+          <div class="table-wrap">
+            <table class="bench-table">
+              <thead><tr><th>Variant</th><th>PK (B)</th><th>CT (B)</th><th>Keygen P50</th><th>Keygen P99</th><th>Encap P50</th><th>Encap P99</th><th>Decap P50</th><th>Decap P99</th></tr></thead>
+              <tbody id="bench-t1-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <!-- Table 2 -->
+        <div class="card section-gap" id="bench-t2-wrap">
+          <div class="card-title">Table 2 &mdash; Handshake Latency</div>
+          <div class="table-wrap">
+            <table class="bench-table">
+              <thead><tr><th>Phase</th><th>Mean (ms)</th><th>P50</th><th>P95</th><th>P99</th><th>Std</th></tr></thead>
+              <tbody id="bench-t2-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <!-- Table 3 -->
+        <div class="card section-gap" id="bench-t3-wrap">
+          <div class="card-title">Table 3 &mdash; Cipher + Wire Overhead</div>
+          <div class="table-wrap">
+            <table class="bench-table">
+              <thead><tr><th>Msg (B)</th><th>Wire (B)</th><th>Overhead (B)</th><th>Overhead %</th><th>Enc P50 (ms)</th><th>Dec P50 (ms)</th><th>Enc P99</th><th>Dec P99</th></tr></thead>
+              <tbody id="bench-t3-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <!-- Table 4 -->
+        <div class="card section-gap" id="bench-t4-wrap">
+          <div class="card-title">Table 4 &mdash; Security Validation</div>
+          <div class="table-wrap">
+            <table class="bench-table">
+              <thead><tr><th>Test</th><th>Result</th><th>Rate</th><th>Notes</th></tr></thead>
+              <tbody id="bench-t4-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <!-- Table 5 -->
+        <div class="card section-gap" id="bench-t5-wrap">
+          <div class="card-title">Table 5 &mdash; System-Level Performance</div>
+          <div class="table-wrap">
+            <table class="bench-table">
+              <thead><tr><th>Metric</th><th>Value</th><th>Unit</th></tr></thead>
+              <tbody id="bench-t5-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <!-- SVG Charts -->
+        <div class="charts-row">
+          <div class="chart-wrap">
+            <div class="chart-title">Chart A &mdash; ML-KEM Keygen Comparison</div>
+            <svg id="chart-a" viewBox="0 0 380 200" height="200"></svg>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-title">Chart B &mdash; Handshake Phase Breakdown</div>
+            <svg id="chart-b" viewBox="0 0 380 200" height="200"></svg>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-title">Chart C &mdash; Wire Overhead vs Msg Size</div>
+            <svg id="chart-c" viewBox="0 0 380 200" height="200"></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECURITY EVENTS ── -->
+    <div id="panel-security-events" class="panel">
+      <div class="panel-title">Security Events</div>
+      <div class="filter-row">
+        <button class="filter-btn active-filter" onclick="filterEvts('all', this)">All</button>
+        <button class="filter-btn" onclick="filterEvts('replay', this)">Replay</button>
+        <button class="filter-btn" onclick="filterEvts('rogue', this)">Rogue</button>
+        <button class="filter-btn" onclick="filterEvts('downgrade', this)">Downgrade</button>
+        <button class="filter-btn" onclick="filterEvts('dos', this)">DoS</button>
+        <button class="filter-btn" onclick="filterEvts('harvest', this)">Harvest</button>
+      </div>
+      <div class="event-list" id="event-list">
+        <div class="loading">Loading</div>
+      </div>
+    </div>
+
+    <!-- ── CONTROLLERS ── -->
+    <div id="panel-controllers" class="panel">
+      <div class="panel-title">Controller Load &amp; Scale-Out</div>
+      <div class="panel-subtitle">Monitor per-controller load. When a controller exceeds the switch or latency threshold, the platform recommends splitting a pod into a new controller domain.</div>
+
+      <div class="card section-gap" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+        <div>
+          <label style="font-size:12px;color:var(--txt2);">Switch threshold</label><br>
+          <input id="ctrl-sw-threshold" type="number" min="1" max="20" value="10"
+                 style="width:70px;background:var(--bg2);border:1px solid var(--border);color:var(--txt);padding:4px 8px;border-radius:4px;font-size:13px;">
+          <span style="font-size:12px;color:var(--txt2);"> switches / controller</span>
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--txt2);">Latency threshold</label><br>
+          <input id="ctrl-hs-threshold" type="number" min="0.1" max="20" step="0.1" value="2.0"
+                 style="width:70px;background:var(--bg2);border:1px solid var(--border);color:var(--txt);padding:4px 8px;border-radius:4px;font-size:13px;">
+          <span style="font-size:12px;color:var(--txt2);"> ms avg handshake</span>
+        </div>
+        <button class="refresh-btn" onclick="loadControllers()">&#8635; Refresh</button>
+      </div>
+
+      <!-- Load cards per controller -->
+      <div id="ctrl-cards" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;"></div>
+
+      <!-- Scale-out recommendation -->
+      <div id="ctrl-recommendation" style="display:none;" class="card section-gap">
+        <div class="card-title" style="color:var(--orange);">&#9888; Scale-Out Recommended</div>
+        <div id="ctrl-rec-reason" style="font-size:13px;color:var(--txt2);margin-bottom:12px;"></div>
+        <div id="ctrl-rec-pods" style="display:flex;gap:12px;flex-wrap:wrap;"></div>
+      </div>
+
+      <!-- Manual scale-out -->
+      <div class="card section-gap">
+        <div class="card-title">Manual Scale-Out</div>
+        <div class="panel-subtitle" style="margin-bottom:12px;">
+          Assign a fat-tree pod to a new controller. In production this maps to starting a separate
+          <code>ryu-manager</code> instance with <code>domain_dpids</code> set to the pod's switches.
+          Controllers communicate indirectly via the shared Plan API — each controller manages its own
+          sessions and forwards inter-domain flow decisions through the root controller.
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div>
+            <label style="font-size:12px;color:var(--txt2);">Controller ID</label><br>
+            <input id="ctrl-new-id" type="text" placeholder="sdn-controller-pod0"
+                   style="width:200px;background:var(--bg2);border:1px solid var(--border);color:var(--txt);padding:6px 10px;border-radius:4px;font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--txt2);">Pod index (0–3)</label><br>
+            <select id="ctrl-pod-idx"
+                    style="background:var(--bg2);border:1px solid var(--border);color:var(--txt);padding:6px 10px;border-radius:4px;font-size:13px;">
+              <option value="0">Pod 0 — dpids 5,6,13,14</option>
+              <option value="1">Pod 1 — dpids 7,8,15,16</option>
+              <option value="2">Pod 2 — dpids 9,10,17,18</option>
+              <option value="3">Pod 3 — dpids 11,12,19,20</option>
+            </select>
+          </div>
+          <button class="refresh-btn" style="border-color:var(--green);color:var(--green);"
+                  onclick="doScaleOut()">&#43; Add Controller</button>
+        </div>
+        <div id="ctrl-scaleout-result" style="margin-top:10px;font-size:12px;color:var(--txt2);font-family:'JetBrains Mono',monospace;white-space:pre-wrap;"></div>
+      </div>
+
+      <!-- How controllers communicate -->
+      <div class="card section-gap">
+        <div class="card-title">How Controllers Coordinate</div>
+        <div style="font-size:13px;color:var(--txt2);line-height:1.7;">
+          <p><strong style="color:var(--txt);">Session isolation:</strong> Each controller runs its own <code>ControlPlaneService</code> with a <code>domain_dpids</code> filter. Handshake requests for out-of-domain switches are rejected immediately — no cross-controller session leakage.</p>
+          <p><strong style="color:var(--txt);">Shared Plan API:</strong> All controllers publish session keys to the same Plan API endpoint (<code>:8080</code>). Switch proxies poll this single endpoint regardless of which controller performed the handshake.</p>
+          <p><strong style="color:var(--txt);">Inter-domain routing:</strong> Cross-pod flows (e.g. edge-pod0 → edge-pod1) traverse core switches managed by the root controller. The root controller installs forwarding rules on core switches; pod controllers install rules on their own agg+edge switches. ECMP selects the least-loaded core path.</p>
+          <p><strong style="color:var(--txt);">Load balancing trigger:</strong> A controller is flagged overloaded when it manages more than <em>switch_threshold</em> switches OR average handshake latency exceeds <em>latency_threshold</em>. The platform then recommends migrating a pod's switches to a new controller domain, reducing per-controller session count and handshake CPU load proportionally.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SYSCONFIG ── -->
+    <div id="panel-sysconfig" class="panel">
+      <div class="panel-title">System Configuration</div>
+      <div class="two-col">
+        <div class="card config-section">
+          <div class="card-title">Port Map</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Service</th><th>Port</th><th>Protocol</th></tr></thead>
+              <tbody>
+                <tr><td>Management API</td><td class="mono">8082</td><td>HTTP/REST</td></tr>
+                <tr><td>OpenFlow Controller</td><td class="mono">6633</td><td>TCP</td></tr>
+                <tr><td>Prometheus Metrics</td><td class="mono">9090</td><td>HTTP</td></tr>
+                <tr><td>Grafana Dashboard</td><td class="mono">3000</td><td>HTTP</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card config-section">
+          <div class="card-title">Startup Order</div>
+          <div class="kv-list">
+            <div class="kv-row"><div class="kv-key">1. Mininet topology</div><div class="kv-val"><span class="badge badge-blue">infra</span></div></div>
+            <div class="kv-row"><div class="kv-key">2. PQC-SDN controller</div><div class="kv-val"><span class="badge badge-cyan">core</span></div></div>
+            <div class="kv-row"><div class="kv-key">3. Prometheus exporter</div><div class="kv-val"><span class="badge badge-orange">metrics</span></div></div>
+            <div class="kv-row"><div class="kv-key">4. Management API</div><div class="kv-val"><span class="badge badge-green">mgmt</span></div></div>
+            <div class="kv-row"><div class="kv-key">5. Grafana</div><div class="kv-val"><span class="badge badge-purple">viz</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card config-section">
+        <div class="card-title">PQC Algorithms Reference</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th colspan="6" style="color:var(--cyan);font-weight:600;">KEM (Key Encapsulation) — global, one per session</th></tr>
+            <tr><th>Algorithm</th><th>Type</th><th>NIST Level</th><th>Key Size</th><th>CT Size</th><th>Use Case</th></tr></thead>
+            <tbody>
+              <tr><td class="text-cyan">ML-KEM-1024</td><td>KEM (Kyber)</td><td>5</td><td class="mono">1568 B</td><td class="mono">1568 B</td><td>Override: max threat response</td></tr>
+              <tr><td class="text-purple">ML-KEM-768</td><td>KEM (Kyber)</td><td>3</td><td class="mono">1184 B</td><td class="mono">1088 B</td><td>Override: elevated threat</td></tr>
+              <tr><td class="text-green">ML-KEM-512</td><td>KEM (Kyber)</td><td>1</td><td class="mono">800 B</td><td class="mono">768 B</td><td>Default — all sessions</td></tr>
+            </tbody>
+            <thead><tr><th colspan="6" style="color:var(--orange);font-weight:600;">Symmetric Cipher — per-flow, selected by DSCP class</th></tr>
+            <tr><th>Cipher</th><th>Type</th><th>Security</th><th>Key Size</th><th>Overhead</th><th>DSCP Classes</th></tr></thead>
+            <tbody>
+              <tr><td class="text-orange">AES-256-GCM</td><td>AEAD</td><td>256-bit</td><td class="mono">32 B</td><td class="mono">0.18 ms</td><td>CS6/CS7, AF11-13, HIGH_SEC</td></tr>
+              <tr><td class="text-green">AES-128-GCM</td><td>AEAD</td><td>128-bit</td><td class="mono">16 B</td><td class="mono">0.12 ms</td><td>AF2x, CS3, AF3x, CS5, BE</td></tr>
+              <tr><td style="color:var(--blue)">ChaCha20-Poly1305</td><td>AEAD</td><td>256-bit</td><td class="mono">32 B</td><td class="mono">0.09 ms</td><td>EF, CS4, AF4x (VoIP/RT)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const API = 'http://' + window.location.hostname + ':8082';
+
+// ── State ──
+let currentPanel = 'overview';
+let selectedAlgo = null;
+let allEvents = [];
+let currentFilter = 'all';
+
+// ── Navigation ──
+function show(id, navEl) {
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  var panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  currentPanel = id;
+  lazyLoad(id);
+}
+
+function lazyLoad(id) {
+  var map = {
+    'overview': loadOverview,
+    'topology': loadTopology,
+    'algo-policy': loadAlgoConfig,
+    'flow-policy': loadFlows,
+    'dscp-table': loadDscpTable,
+    'sessions': loadSessions,
+    'benchmarks': loadBenchmarks,
+    'security-events': loadEvents,
+    'controllers': loadControllers
+  };
+  if (map[id]) map[id]();
+}
+
+function refreshCurrent() { lazyLoad(currentPanel); }
+
+// ── API helpers ──
+const TOKEN = 'pqc-secret-token';
+const AUTH_HEADERS = { 'Authorization': 'Bearer ' + TOKEN };
+
+async function get(path) {
+  var r = await fetch(API + path, { headers: AUTH_HEADERS });
+  var json = await r.json().catch(function() { return {}; });
+  if (!r.ok) throw new Error(json.error || ('HTTP ' + r.status));
+  return json;
+}
+
+async function post(path, body) {
+  var r = await fetch(API + path, {
+    method: 'POST',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, AUTH_HEADERS),
+    body: body !== undefined ? JSON.stringify(body) : undefined
+  });
+  var json = await r.json().catch(function() { return {}; });
+  // Return error body as {ok:false, error:...} instead of throwing,
+  // so callers can read r.error and r.tier_status etc from 400 responses.
+  if (!r.ok) return Object.assign({ ok: false, error: json.error || ('HTTP ' + r.status) }, json);
+  return json;
+}
+
+// ── Connection check ──
+async function checkConn() {
+  var pill = document.getElementById('conn-pill');
+  var txt = document.getElementById('conn-text');
+  try {
+    await get('/mgmt/status');
+    pill.className = 'conn-pill connected';
+    txt.textContent = 'Connected';
+  } catch (e) {
+    pill.className = 'conn-pill disconnected';
+    txt.textContent = 'Disconnected';
+  }
+}
+
+// ── Toast ──
+function toast(msg, isErr) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (isErr ? 'err' : 'ok');
+  clearTimeout(el._t);
+  el._t = setTimeout(function() { el.className = 'toast'; }, 3500);
+}
+
+// ── Helpers ──
+function algoColor(algo) {
+  if (!algo) return 'var(--txt3)';
+  if (algo.indexOf('1024') !== -1) return 'var(--cyan)';
+  if (algo.indexOf('768') !== -1) return 'var(--purple)';
+  if (algo.indexOf('512') !== -1) return 'var(--green)';
+  if (algo.indexOf('ChaCha') !== -1) return 'var(--blue)';
+  if (algo.indexOf('AES-256') !== -1) return 'var(--orange)';
+  if (algo.indexOf('AES') !== -1) return 'var(--green)';
+  return 'var(--txt2)';
+}
+
+function algoBadgeClass(algo) {
+  if (!algo) return 'badge-blue';
+  if (algo.indexOf('1024') !== -1) return 'badge-cyan';
+  if (algo.indexOf('768') !== -1) return 'badge-purple';
+  if (algo.indexOf('512') !== -1) return 'badge-green';
+  if (algo.indexOf('ChaCha') !== -1) return 'badge-blue';
+  if (algo.indexOf('AES-256') !== -1) return 'badge-orange';
+  if (algo.indexOf('AES') !== -1) return 'badge-green';
+  return 'badge-blue';
+}
+
+function kv(label, val) {
+  return '<div class="kv-row"><div class="kv-key">' + esc(label) + '</div><div class="kv-val">' + val + '</div></div>';
+}
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function fmt(n, d) {
+  d = (d === undefined) ? 3 : d;
+  return (typeof n === 'number' && !isNaN(n)) ? n.toFixed(d) : (n != null ? String(n) : '—');
+}
+
+function getVal(obj) {
+  // Normalize variable API field names
+  return obj;
+}
+
+// ── OVERVIEW ──
+async function loadOverview() {
+  try {
+    var d = await get('/mgmt/status');
+    document.getElementById('ov-sessions').textContent = d.sessions != null ? d.sessions : '—';
+    document.getElementById('ov-switches').textContent = d.switches != null ? d.switches : '—';
+    var pmode = d.override_enabled
+      ? (d.override_algorithm || 'Override')
+      : 'ML-KEM-512';
+    var oel = document.getElementById('ov-policy');
+    oel.textContent = pmode;
+    oel.style.color = d.override_enabled ? 'var(--orange)' : 'var(--green)';
+    document.getElementById('ov-events').textContent = d.security_events_total != null ? d.security_events_total : '—';
+    var res = document.getElementById('ov-resources');
+    res.innerHTML =
+      kv('CPU Usage', '<span class="mono">' + fmt(d.cpu_percent, 1) + '%</span>') +
+      kv('Memory', '<span class="mono">' + fmt(d.memory_mb != null ? d.memory_mb : d.memory_mib, 1) + ' MiB</span>') +
+      kv('Total Flows', '<span class="mono">' + (d.total_flows != null ? d.total_flows : '—') + '</span>') +
+      kv('Override', d.override_enabled
+        ? '<span class="badge badge-orange">Active: ' + esc(d.override_algorithm || '') + '</span>'
+        : '<span class="badge badge-green">Default: ML-KEM-512</span>');
+  } catch (e) {
+    document.getElementById('ov-resources').innerHTML = '<div class="no-data">Error: ' + esc(e.message) + '</div>';
+  }
+}
+
+// ── TOPOLOGY ──
+async function loadTopology() {
+  try {
+    var d = await get('/mgmt/topology');
+    renderTopo(d.nodes || [], d.edges || []);
+  } catch (e) {
+    var svg = document.getElementById('topo-svg');
+    svg.innerHTML = '<rect width="700" height="340" rx="8" fill="rgba(0,0,0,0.3)"/><text x="350" y="175" text-anchor="middle" fill="#ef4444" font-size="13">Error: ' + esc(e.message) + '</text>';
+  }
+  // Update tier capacity bar
+  try {
+    var t = await get('/mgmt/topology/tiers');
+    var tiers = t.tiers || {};
+    var c = tiers.core || {}, a = tiers.agg || {}, e = tiers.edge || {};
+    var cFull = c.available === 0, aFull = a.available === 0, eFull = e.available === 0;
+    var el = document.getElementById('tier-core-status');
+    if (el) { el.textContent = 'Core ' + (c.used||0) + '/' + (c.capacity||4);
+              el.style.color = cFull ? 'var(--red)' : 'var(--cyan)'; }
+    el = document.getElementById('tier-agg-status');
+    if (el) { el.textContent = 'Agg ' + (a.used||0) + '/' + (a.capacity||8);
+              el.style.color = aFull ? 'var(--red)' : 'var(--purple)'; }
+    el = document.getElementById('tier-edge-status');
+    if (el) { el.textContent = 'Edge ' + (e.used||0) + '/' + (e.capacity||8);
+              el.style.color = eFull ? 'var(--red)' : 'var(--green)'; }
+    var total = (c.used||0) + (a.used||0) + (e.used||0);
+    el = document.getElementById('tier-total-status');
+    if (el) el.textContent = total + ' / ' + (t.total_switches||20) + ' total';
+  } catch (_) {}
+}
+
+function renderTopo(nodes, edges) {
+  var svg = document.getElementById('topo-svg');
+  var W = 700, H = 340;
+  var pos = {};
+  var byTier = { core: [], agg: [], edge: [], unknown: [] };
+  var controllers = [];
+
+  for (var i = 0; i < nodes.length; i++) {
+    var n = nodes[i];
+    if (n.type === 'controller') { controllers.push(n); continue; }
+    var tier = n.tier || 'unknown';
+    if (!byTier[tier]) byTier[tier] = [];
+    byTier[tier].push(n);
+  }
+
+  // Position controllers across the top
+  var ctrlColors = ['var(--blue)','var(--cyan)','var(--purple)','var(--green)','var(--orange)'];
+  if (controllers.length === 0) controllers.push({id:'controller', label:'CTRL', type:'controller'});
+  controllers.forEach(function(c, idx) {
+    pos[c.id] = { x: (W / (controllers.length + 1)) * (idx + 1), y: 30 };
+  });
+
+  var hasTiers = byTier.core.length > 0 || byTier.agg.length > 0 || byTier.edge.length > 0;
+  var allSwitches = byTier.core.concat(byTier.agg).concat(byTier.edge).concat(byTier.unknown);
+
+  if (hasTiers) {
+    var rows = [
+      { list: byTier.core,    y: 100, label: 'Core' },
+      { list: byTier.agg,     y: 185, label: 'Aggregation' },
+      { list: byTier.edge,    y: 270, label: 'Edge' },
+    ];
+    rows.forEach(function(row) {
+      var n = row.list.length;
+      row.list.forEach(function(sw, idx) {
+        pos[sw.id] = { x: (W / (n + 1)) * (idx + 1), y: row.y };
+      });
+    });
+    byTier.unknown.forEach(function(sw, idx) {
+      pos[sw.id] = { x: (W / (byTier.unknown.length + 1)) * (idx + 1), y: 310 };
+    });
+  } else {
+    var R = 120, cx = W / 2, cy = H / 2 + 20;
+    allSwitches.forEach(function(sw, j) {
+      var angle = (2 * Math.PI * j / Math.max(allSwitches.length, 1)) - Math.PI / 2;
+      pos[sw.id] = { x: cx + R * Math.cos(angle), y: cy + R * Math.sin(angle) };
+    });
+  }
+
+  var out = '<rect width="' + W + '" height="' + H + '" rx="8" fill="rgba(0,0,0,0.3)"/>';
+
+  if (hasTiers) {
+    [['Core', 100], ['Aggregation', 185], ['Edge', 270]].forEach(function(t) {
+      out += '<text x="8" y="' + (t[1] - 8) + '" fill="rgba(156,163,175,0.5)" font-size="9" font-family="JetBrains Mono,monospace">' + t[0] + '</text>';
+    });
+  }
+
+  // Build controller color map by id
+  var ctrlColorMap = {};
+  controllers.forEach(function(c, idx) { ctrlColorMap[c.id] = ctrlColors[idx % ctrlColors.length]; });
+
+  // Edges
+  edges.forEach(function(e) {
+    var a = pos[e.from], b = pos[e.to];
+    if (!a || !b) return;
+    var isCtrl = e.type === 'control';
+    // Use controller's color for its control edges
+    var edgeColor = isCtrl ? (ctrlColorMap[e.from] || 'rgba(59,130,246,0.35)').replace('var(--blue)','rgba(59,130,246,0.35)').replace('var(--cyan)','rgba(6,182,212,0.35)').replace('var(--purple)','rgba(139,92,246,0.35)').replace('var(--green)','rgba(16,185,129,0.35)').replace('var(--orange)','rgba(245,158,11,0.35)') : 'rgba(75,85,99,0.6)';
+    out += '<line x1="' + a.x.toFixed(1) + '" y1="' + a.y.toFixed(1)
+      + '" x2="' + b.x.toFixed(1) + '" y2="' + b.y.toFixed(1)
+      + '" stroke="' + edgeColor + '" stroke-width="' + (isCtrl ? '1' : '1.8') + '"'
+      + (isCtrl ? ' stroke-dasharray="4,3"' : '') + '/>';
+  });
+
+  // Switch nodes
+  nodes.forEach(function(n) {
+    if (n.type === 'controller') return;
+    var p = pos[n.id];
+    if (!p) return;
+    var color = algoColor(n.algorithm);
+    // Pod boundary ring: use controller color if multi-controller
+    var ctrlColor = n.controller_id ? (ctrlColorMap[n.controller_id] || color) : color;
+    out += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="18"'
+      + ' fill="' + color + '" fill-opacity="0.18" stroke="' + color + '" stroke-width="1.5"/>';
+    if (n.controller_id && controllers.length > 1) {
+      out += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="21"'
+        + ' fill="none" stroke="' + ctrlColor + '" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>';
+    }
+    out += '<text x="' + p.x.toFixed(1) + '" y="' + (p.y + 4).toFixed(1)
+      + '" text-anchor="middle" fill="' + color + '" font-size="9"'
+      + ' font-family="JetBrains Mono,monospace" font-weight="600">'
+      + esc(n.label || n.id) + '</text>';
+    if (n.algorithm) {
+      out += '<text x="' + p.x.toFixed(1) + '" y="' + (p.y + 30).toFixed(1)
+        + '" text-anchor="middle" fill="var(--txt3)" font-size="8" font-family="JetBrains Mono,monospace">'
+        + esc(n.algorithm.replace('ML-KEM-','KEM-')) + '</text>';
+    }
+  });
+
+  // Controller nodes
+  controllers.forEach(function(c, idx) {
+    var p = pos[c.id];
+    if (!p) return;
+    var color = ctrlColors[idx % ctrlColors.length];
+    out += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="22"'
+      + ' fill="' + color + '" fill-opacity="0.18" stroke="' + color + '" stroke-width="1.5"/>';
+    out += '<text x="' + p.x.toFixed(1) + '" y="' + (p.y + 4).toFixed(1)
+      + '" text-anchor="middle" fill="' + color + '" font-size="9"'
+      + ' font-family="JetBrains Mono,monospace" font-weight="600">'
+      + esc(c.label || 'CTRL') + '</text>';
+  });
+
+  svg.innerHTML = out;
+}
+
+// ── ALGO CONFIG ──
+async function loadAlgoConfig() {
+  try {
+    var d = await get('/mgmt/status');
+    setMode('manual');
+    if (d.override_algorithm) selectAlgo(d.override_algorithm);
+    document.getElementById('live-policy-info').innerHTML =
+      kv('Mode', d.override_enabled ? '<span class="badge badge-orange">Manual Override</span>' : '<span class="badge badge-green">Default: ML-KEM-512</span>') +
+      kv('Active Algorithm', '<span style="color:' + algoColor(d.override_algorithm || 'ML-KEM-512') + '">' + esc(d.override_algorithm || 'ML-KEM-512') + '</span>') +
+      kv('Sessions', '<span class="mono">' + (d.sessions != null ? d.sessions : '—') + '</span>');
+  } catch (e) {
+    document.getElementById('live-policy-info').innerHTML = '<div class="no-data">Error: ' + esc(e.message) + '</div>';
+  }
+}
+
+function setMode(mode) {
+  var btnM = document.getElementById('mode-manual');
+  if (btnM) btnM.classList.add('active-mode');
+}
+
+function selectAlgo(algo) {
+  selectedAlgo = algo;
+  document.querySelectorAll('.algo-card').forEach(function(c) { c.classList.remove('selected-algo'); });
+  var card = document.getElementById('ac-' + algo);
+  if (card) card.classList.add('selected-algo');
+}
+
+async function applyPolicy() {
+  if (!selectedAlgo) {
+    toast('Select an algorithm first', true);
+    return;
+  }
+  try {
+    await post('/mgmt/config/algorithm', { override_enabled: true, algorithm: selectedAlgo });
+    toast('Policy applied successfully');
+    await loadAlgoConfig();
+  } catch (e) {
+    toast('Failed: ' + e.message, true);
+  }
+}
+
+// ── DSCP TABLE ──
+async function loadDscpTable() {
+  var tbody = document.querySelector('#dscp-table-el tbody');
+  try {
+    var d = await get('/mgmt/policy/dscp-table');
+    var rows = Array.isArray(d) ? d : (d.entries || []);
+    if (!rows.length && typeof d === 'object') {
+      rows = Object.entries(d.table || d).map(function(e) { return Object.assign({ dscp: e[0] }, typeof e[1] === 'object' ? e[1] : { algorithm: e[1] }); });
+    }
+    if (!rows.length) { tbody.innerHTML = '<tr><td colspan="4"><div class="no-data">No DSCP entries</div></td></tr>'; return; }
+    tbody.innerHTML = rows.map(function(r) {
+      return '<tr><td class="mono">' + esc(r.dscp != null ? r.dscp : (r.dscp_value != null ? r.dscp_value : '')) + '</td>'
+        + '<td>' + esc(r.name || r.dscp_name || '') + '</td>'
+        + '<td><span style="color:' + algoColor(r.algorithm) + '">' + esc(r.algorithm || '') + '</span></td>'
+        + '<td><span class="badge ' + algoBadgeClass(r.algorithm) + '">' + esc(r.level || r.security_level || '') + '</span></td></tr>';
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="4"><div class="no-data">Error: ' + esc(e.message) + '</div></td></tr>';
+  }
+}
+
+// ── SESSIONS ──
+async function loadSessions() {
+  var tbody = document.querySelector('#sessions-table tbody');
+  try {
+    var d = await get('/mgmt/sessions');
+    var rows = Array.isArray(d) ? d : (d.sessions || []);
+    if (!rows.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="no-data">No active sessions</div></td></tr>'; return; }
+    tbody.innerHTML = rows.map(function(r) {
+      var status = r.status || '';
+      return '<tr><td class="mono">' + esc(r.dpid || r.switch_dpid || '') + '</td>'
+        + '<td>' + esc(r.role || '') + '</td>'
+        + '<td><span style="color:' + algoColor(r.algorithm) + '">' + esc(r.algorithm || '') + '</span></td>'
+        + '<td class="mono">' + esc(r.dscp != null ? r.dscp : '') + '</td>'
+        + '<td class="mono">' + esc(r.peer || r.peer_address || '') + '</td>'
+        + '<td><span class="badge ' + (status === 'active' ? 'badge-green' : 'badge-orange') + '">' + esc(status) + '</span></td></tr>';
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="no-data">Error: ' + esc(e.message) + '</div></td></tr>';
+  }
+}
+
+// ── BENCHMARKS ──
+async function loadBenchmarks() {
+  var tbody = document.getElementById('bench-files-body');
+  try {
+    var files = await get('/mgmt/benchmarks');
+    var list = Array.isArray(files) ? files : (files.files || files.results || []);
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="5"><div class="no-data">No benchmark results found</div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(function(f) {
+      var fname = esc(f.filename || f.name || '');
+      return '<tr>'
+        + '<td class="mono">' + esc(f.timestamp || f.ts || '') + '</td>'
+        + '<td>' + esc(f.tables || '') + '</td>'
+        + '<td>' + esc(f.platform || '') + '</td>'
+        + '<td class="mono">' + esc(f.liboqs || '') + '</td>'
+        + '<td><button class="load-file-btn" onclick="loadBenchmarkFile(\'' + fname + '\')">Load</button></td>'
+        + '</tr>';
+    }).join('');
+    // Auto-load the most recent result if results area is not yet visible
+    var wrap = document.getElementById('bench-results');
+    if (wrap && wrap.style.display === 'none' && list.length > 0) {
+      var latestName = list[0].filename || list[0].name || '';
+      if (latestName) {
+        try {
+          var data = await get('/mgmt/benchmarks/' + encodeURIComponent(latestName));
+          renderBenchmarkData(data.data || data);
+        } catch(_) {}
+      }
+    }
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="no-data">Error: ' + esc(e.message) + '</div></td></tr>';
+  }
+}
+
+async function loadBenchmarkFile(name) {
+  try {
+    var data = await get('/mgmt/benchmarks/' + encodeURIComponent(name));
+    renderBenchmarkData(data.data || data);
+    toast('Loaded ' + name);
+  } catch (e) {
+    toast('Failed to load: ' + e.message, true);
+  }
+}
+
+function renderBenchmarkData(data) {
+  var wrap = document.getElementById('bench-results');
+  wrap.style.display = 'block';
+
+  // Table 1 — ML-KEM ops
+  var t1wrap = document.getElementById('bench-t1-wrap');
+  if (data.ml_kem && data.ml_kem.length) {
+    t1wrap.style.display = 'block';
+    document.getElementById('bench-t1-body').innerHTML = data.ml_kem.map(function(r) {
+      var cls = r.variant && r.variant.indexOf('1024') !== -1 ? 'row-1024'
+               : r.variant && r.variant.indexOf('768') !== -1 ? 'row-768' : 'row-512';
+      return '<tr class="' + cls + '"><td>' + esc(r.variant) + '</td>'
+        + '<td>' + esc(r.pk_bytes != null ? r.pk_bytes : (r.pk != null ? r.pk : '')) + '</td>'
+        + '<td>' + esc(r.ct_bytes != null ? r.ct_bytes : (r.ct != null ? r.ct : '')) + '</td>'
+        + '<td>' + fmt(r.keygen_p50) + '</td><td>' + fmt(r.keygen_p99) + '</td>'
+        + '<td>' + fmt(r.encap_p50) + '</td><td>' + fmt(r.encap_p99) + '</td>'
+        + '<td>' + fmt(r.decap_p50) + '</td><td>' + fmt(r.decap_p99) + '</td></tr>';
+    }).join('');
+  } else { t1wrap.style.display = 'none'; }
+
+  // Table 2 — Handshake
+  var t2wrap = document.getElementById('bench-t2-wrap');
+  if (data.handshake && data.handshake.length) {
+    t2wrap.style.display = 'block';
+    document.getElementById('bench-t2-body').innerHTML = data.handshake.map(function(r) {
+      var isTotal = String(r.phase).toLowerCase() === 'total';
+      return '<tr class="' + (isTotal ? 'row-total' : '') + '"><td>' + esc(r.phase) + '</td>'
+        + '<td>' + fmt(r.mean) + '</td><td>' + fmt(r.p50) + '</td><td>' + fmt(r.p95) + '</td><td>' + fmt(r.p99) + '</td><td>' + fmt(r.std) + '</td></tr>';
+    }).join('');
+  } else { t2wrap.style.display = 'none'; }
+
+  // Table 3 — Cipher overhead
+  var t3wrap = document.getElementById('bench-t3-wrap');
+  if (data.cipher && data.cipher.length) {
+    t3wrap.style.display = 'block';
+    document.getElementById('bench-t3-body').innerHTML = data.cipher.map(function(r) {
+      var oh = parseFloat(r.overhead_pct != null ? r.overhead_pct : (r.overhead_percent != null ? r.overhead_percent : 0));
+      var barW = Math.min(oh, 100).toFixed(1);
+      return '<tr><td>' + esc(r.msg_bytes != null ? r.msg_bytes : (r.msg != null ? r.msg : '')) + '</td>'
+        + '<td>' + esc(r.wire_bytes != null ? r.wire_bytes : (r.wire != null ? r.wire : '')) + '</td>'
+        + '<td>' + esc(r.overhead_bytes != null ? r.overhead_bytes : (r.overhead != null ? r.overhead : '')) + '</td>'
+        + '<td><div class="oh-bar"><div class="oh-track"><div class="oh-fill" style="width:' + barW + '%"></div></div>'
+        + '<span style="font-size:11px;color:var(--orange)">' + oh.toFixed(1) + '%</span></div></td>'
+        + '<td>' + fmt(r.enc_p50) + '</td><td>' + fmt(r.dec_p50) + '</td>'
+        + '<td>' + fmt(r.enc_p99) + '</td><td>' + fmt(r.dec_p99) + '</td></tr>';
+    }).join('');
+  } else { t3wrap.style.display = 'none'; }
+
+  // Table 4 — Security validation
+  var t4wrap = document.getElementById('bench-t4-wrap');
+  if (data.security && data.security.length) {
+    t4wrap.style.display = 'block';
+    document.getElementById('bench-t4-body').innerHTML = data.security.map(function(r) {
+      var pass = String(r.result).toLowerCase() === 'pass';
+      return '<tr><td>' + esc(r.test) + '</td>'
+        + '<td><span class="badge ' + (pass ? 'badge-green' : 'badge-red') + '">' + esc(r.result) + '</span></td>'
+        + '<td class="mono">' + esc(r.rate != null ? r.rate : '') + '</td>'
+        + '<td>' + esc(r.notes != null ? r.notes : '') + '</td></tr>';
+    }).join('');
+  } else { t4wrap.style.display = 'none'; }
+
+  // Table 5 — System-level performance
+  var t5wrap = document.getElementById('bench-t5-wrap');
+  var sys = data.system;
+  if (sys && typeof sys === 'object') {
+    t5wrap.style.display = 'block';
+    var T5_ROWS = [
+      ['concurrent_handshake',   'Concurrent Handshakes/s',          function(d){ return d.handshakes_per_sec != null ? d.handshakes_per_sec.toFixed(1) : '—'; }, 'hs/s'],
+      ['handshake_under_load',   'Handshake Latency p50 (under load)',function(d){ return d.p50 != null ? d.p50.toFixed(3) : '—'; }, 'ms'],
+      ['handshake_under_load',   'Handshake Latency p99 (under load)',function(d){ return d.p99 != null ? d.p99.toFixed(3) : '—'; }, 'ms'],
+      ['replay_detection_us',    'Replay Detection Latency p50',      function(d){ return d.p50 != null ? d.p50.toFixed(2) : '—'; }, 'μs'],
+      ['tamper_detection_us',    'Tamper Detection Latency p50',      function(d){ return d.p50 != null ? d.p50.toFixed(2) : '—'; }, 'μs'],
+      ['key_refresh_768',        'Key Refresh Throughput (ML-KEM-768)',function(d){ return d.refreshes_per_sec != null ? d.refreshes_per_sec.toFixed(1) : '—'; }, 'hs/s'],
+      ['sustained_encrypt',      'Sustained Encrypt Goodput',         function(d){ return d.goodput_mbps != null ? d.goodput_mbps.toFixed(2) : '—'; }, 'Mbps'],
+      ['dscp_classification',    'DSCP Classification Throughput',    function(d){ return d.per_sec != null ? d.per_sec.toFixed(0) : '—'; }, 'flows/s'],
+    ];
+    document.getElementById('bench-t5-body').innerHTML = T5_ROWS.map(function(row) {
+      var key = row[0], label = row[1], fn = row[2], unit = row[3];
+      var val = sys[key] ? fn(sys[key]) : '—';
+      return '<tr><td>' + esc(label) + '</td><td class="mono">' + esc(val) + '</td><td class="mono">' + esc(unit) + '</td></tr>';
+    }).join('');
+  } else if (t5wrap) { t5wrap.style.display = 'none'; }
+
+  // SVG Charts
+  if (data.ml_kem && data.ml_kem.length) {
+    var labels = data.ml_kem.map(function(r) { return r.variant || ''; });
+    var vals = data.ml_kem.map(function(r) { return parseFloat(r.keygen_p50) || 0; });
+    var colors = data.ml_kem.map(function(r) {
+      if (!r.variant) return '#06b6d4';
+      if (r.variant.indexOf('512') !== -1) return '#10b981';
+      if (r.variant.indexOf('768') !== -1) return '#8b5cf6';
+      return '#06b6d4';
+    });
+    renderSvgBarChart('chart-a', labels, vals, colors, 'ms');
+  }
+  if (data.handshake && data.handshake.length) {
+    var hsRows = data.handshake;
+    var hsLabels = hsRows.map(function(r) { return r.phase; });
+    var hsVals = hsRows.map(function(r) { return parseFloat(r.p50) || 0; });
+    var hsColors = hsLabels.map(function(l) { return (l === 'Total' || l === 'total') ? '#f59e0b' : '#06b6d4'; });
+    renderSvgBarChart('chart-b', hsLabels, hsVals, hsColors, 'ms');
+  }
+  if (data.cipher && data.cipher.length) {
+    var cLabels = data.cipher.map(function(r) { return String(r.msg_bytes != null ? r.msg_bytes : (r.msg != null ? r.msg : '')); });
+    var cVals = data.cipher.map(function(r) { return parseFloat(r.overhead_pct != null ? r.overhead_pct : (r.overhead_percent != null ? r.overhead_percent : 0)); });
+    renderSvgBarChart('chart-c', cLabels, cVals, cVals.map(function() { return '#f59e0b'; }), '%');
+  }
+}
+
+// ── SVG Line Chart (time-series) ──
+function renderLineChart(svgId, series, W, H) {
+  var svg = document.getElementById(svgId);
+  if (!svg) return;
+  var padL = 42, padR = 12, padT = 14, padB = 24;
+  var chartW = W - padL - padR;
+  var chartH = H - padT - padB;
+
+  // Find global max across all series
+  var maxVal = 1;
+  series.forEach(function(s) {
+    s.data.forEach(function(v) { if (v > maxVal) maxVal = v; });
+  });
+  maxVal = maxVal * 1.2;
+
+  var n = series.length ? Math.max.apply(null, series.map(function(s) { return s.data.length; })) : 0;
+  if (n < 2) {
+    svg.innerHTML = '<rect width="' + W + '" height="' + H + '" rx="6" fill="rgba(0,0,0,0.3)"/>'
+      + '<text x="' + (W/2) + '" y="' + (H/2) + '" text-anchor="middle" fill="#6b7280" font-size="11" font-family="Inter,sans-serif">Collecting data…</text>';
+    return;
+  }
+
+  var out = '<rect width="' + W + '" height="' + H + '" rx="6" fill="rgba(0,0,0,0.3)"/>';
+
+  // Gridlines + Y labels
+  for (var g = 0; g <= 4; g++) {
+    var gy = padT + chartH - (g / 4) * chartH;
+    var gval = (g / 4) * maxVal;
+    out += '<line x1="' + padL + '" y1="' + gy.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + gy.toFixed(1) + '" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>';
+    var glabel = gval < 1 ? gval.toFixed(1) : gval < 100 ? gval.toFixed(0) : Math.round(gval).toString();
+    out += '<text x="' + (padL - 4) + '" y="' + (gy + 3.5).toFixed(1) + '" text-anchor="end" fill="#6b7280" font-size="9" font-family="JetBrains Mono,monospace">' + glabel + '</text>';
+  }
+
+  // Each series: area fill + line
+  series.forEach(function(s) {
+    var pts = s.data;
+    if (!pts.length) return;
+    var len = pts.length;
+    var xStep = chartW / Math.max(len - 1, 1);
+
+    // Build polyline points
+    var linePoints = [];
+    var areaPoints = [];
+    areaPoints.push((padL).toFixed(1) + ',' + (padT + chartH).toFixed(1));
+    for (var i = 0; i < len; i++) {
+      var x = (padL + i * xStep).toFixed(1);
+      var y = (padT + chartH - (pts[i] / maxVal) * chartH).toFixed(1);
+      linePoints.push(x + ',' + y);
+      areaPoints.push(x + ',' + y);
+    }
+    areaPoints.push((padL + (len - 1) * xStep).toFixed(1) + ',' + (padT + chartH).toFixed(1));
+
+    // Area (semi-transparent fill)
+    var areaId = svgId + '-grad-' + s.color.replace('#','');
+    out += '<defs><linearGradient id="' + areaId + '" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="' + s.color + '" stop-opacity="0.25"/>'
+      + '<stop offset="100%" stop-color="' + s.color + '" stop-opacity="0.02"/>'
+      + '</linearGradient></defs>';
+    out += '<polygon points="' + areaPoints.join(' ') + '" fill="url(#' + areaId + ')"/>';
+    // Line
+    out += '<polyline points="' + linePoints.join(' ') + '" fill="none" stroke="' + s.color + '" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>';
+    // Last value dot
+    var lx = (padL + (len - 1) * xStep).toFixed(1);
+    var ly = (padT + chartH - (pts[len - 1] / maxVal) * chartH).toFixed(1);
+    out += '<circle cx="' + lx + '" cy="' + ly + '" r="3" fill="' + s.color + '"/>';
+    // Last value label
+    out += '<text x="' + (parseFloat(lx) + 5) + '" y="' + (parseFloat(ly) + 3.5) + '" fill="' + s.color + '" font-size="9" font-family="JetBrains Mono,monospace">' + (pts[len-1] < 10 ? pts[len-1].toFixed(1) : Math.round(pts[len-1])) + '</text>';
+  });
+
+  // X-axis baseline
+  out += '<line x1="' + padL + '" y1="' + (padT + chartH) + '" x2="' + (W - padR) + '" y2="' + (padT + chartH) + '" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>';
+
+  svg.innerHTML = out;
+}
+
+// ── SVG Bar Chart ──
+function renderSvgBarChart(svgId, labels, values, colors, unit) {
+  var svg = document.getElementById(svgId);
+  if (!svg || !labels.length) return;
+  var W = 380, H = 200;
+  var padL = 46, padR = 10, padT = 18, padB = 42;
+  var chartW = W - padL - padR;
+  var chartH = H - padT - padB;
+  var n = labels.length;
+  var maxVal = 0;
+  for (var i = 0; i < values.length; i++) { if (values[i] > maxVal) maxVal = values[i]; }
+  maxVal = maxVal * 1.25 || 1;
+  var gap = chartW / n;
+  var bw = Math.max(6, gap * 0.55);
+  var out = '<rect width="' + W + '" height="' + H + '" rx="6" fill="rgba(0,0,0,0.3)"/>';
+  // Gridlines
+  for (var g = 0; g <= 4; g++) {
+    var gy = padT + chartH - (g / 4) * chartH;
+    var gval = (g / 4) * maxVal;
+    out += '<line x1="' + padL + '" y1="' + gy.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + gy.toFixed(1) + '" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>';
+    var glabel = gval < 1 ? gval.toFixed(2) : gval < 10 ? gval.toFixed(1) : Math.round(gval).toString();
+    out += '<text x="' + (padL - 4) + '" y="' + (gy + 3.5).toFixed(1) + '" text-anchor="end" fill="#9ca3af" font-size="9" font-family="JetBrains Mono,monospace">' + glabel + '</text>';
+  }
+  // Y axis unit
+  out += '<text x="11" y="' + (padT + chartH / 2).toFixed(1) + '" text-anchor="middle" fill="#9ca3af" font-size="9" transform="rotate(-90,11,' + (padT + chartH / 2).toFixed(1) + ')">' + esc(unit) + '</text>';
+  // Bars
+  for (var b = 0; b < labels.length; b++) {
+    var val = values[b] || 0;
+    var bh = Math.max(2, (val / maxVal) * chartH);
+    var bx = padL + b * gap + (gap - bw) / 2;
+    var by = padT + chartH - bh;
+    var color = Array.isArray(colors) ? (colors[b] || '#06b6d4') : String(colors);
+    out += '<rect x="' + bx.toFixed(1) + '" y="' + by.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + bh.toFixed(1) + '" rx="2" fill="' + esc(color) + '" fill-opacity="0.85"/>';
+    // Value on top
+    if (bh > 12) {
+      var vlabel = val < 1 ? val.toFixed(3) : val < 10 ? val.toFixed(2) : val.toFixed(1);
+      out += '<text x="' + (bx + bw / 2).toFixed(1) + '" y="' + (by - 3).toFixed(1) + '" text-anchor="middle" fill="#f3f4f6" font-size="8" font-family="JetBrains Mono,monospace">' + vlabel + '</text>';
+    }
+    // X label
+    var shortLabel = String(labels[b]);
+    if (shortLabel.length > 11) shortLabel = shortLabel.slice(-9);
+    out += '<text x="' + (bx + bw / 2).toFixed(1) + '" y="' + (H - padB + 14) + '" text-anchor="middle" fill="#9ca3af" font-size="9" font-family="Inter,sans-serif">' + esc(shortLabel) + '</text>';
+  }
+  // Axes
+  out += '<line x1="' + padL + '" y1="' + padT + '" x2="' + padL + '" y2="' + (padT + chartH) + '" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>';
+  out += '<line x1="' + padL + '" y1="' + (padT + chartH) + '" x2="' + (W - padR) + '" y2="' + (padT + chartH) + '" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>';
+  svg.innerHTML = out;
+}
+
+// ── EVENTS ──
+async function loadEvents() {
+  var container = document.getElementById('event-list');
+  try {
+    var d = await get('/mgmt/security-events?limit=100');
+    allEvents = Array.isArray(d) ? d : (d.events || []);
+    renderEvents();
+  } catch (e) {
+    container.innerHTML = '<div class="no-data">Error: ' + esc(e.message) + '</div>';
+  }
+}
+
+function renderEvents() {
+  var container = document.getElementById('event-list');
+  var filtered = currentFilter === 'all' ? allEvents : allEvents.filter(function(e) {
+    var t = String(e.type || e.event_type || '').toLowerCase();
+    return t.indexOf(currentFilter) !== -1;
+  });
+  if (!filtered.length) { container.innerHTML = '<div class="no-data">No events matching filter</div>'; return; }
+  container.innerHTML = filtered.map(renderEventItem).join('');
+}
+
+function renderEventItem(e) {
+  var type = String(e.event || e.type || e.event_type || 'unknown').toLowerCase();
+  var sev = (e.severity || '').toLowerCase();
+  var badgeCls = 'badge-blue';
+  if (type === 'replay' || type === 'handshake_failure' || sev === 'high') badgeCls = 'badge-red';
+  else if (type === 'downgrade' || type === 'dos' || sev === 'medium') badgeCls = 'badge-orange';
+  else if (type === 'harvest' || type === 'traffic_analysis') badgeCls = 'badge-cyan';
+  var label = e.label || type;
+  var ts = e.timestamp || e.ts || '';
+  var tsStr = ts ? new Date(parseFloat(ts) * 1000).toLocaleTimeString() : '';
+  var detail = 'dpid=' + esc(e.dpid || '?') + '  src=' + esc(e.src_ip || '?');
+  return '<div class="event-item">'
+    + '<div class="event-ts">' + tsStr + '</div>'
+    + '<div><span class="badge ' + badgeCls + '">' + esc(label) + '</span></div>'
+    + '<div class="event-detail">' + detail + '</div>'
+    + '</div>';
+}
+
+function filterEvts(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active-filter'); });
+  if (btn) btn.classList.add('active-filter');
+  renderEvents();
+}
+
+// ── RUN BENCHMARK ──
+async function runBenchmark() {
+  var btn = document.getElementById('run-btn');
+  var label = document.getElementById('run-btn-label');
+  btn.disabled = true;
+  btn.classList.add('running');
+  label.textContent = ' Running… (~30s)';
+  try {
+    await post('/mgmt/benchmarks/run');
+    toast('Benchmark complete! Loading results…');
+    await loadBenchmarks();
+    // Auto-load the latest result into the tables
+    try {
+      var data = await get('/mgmt/benchmarks/latest');
+      renderBenchmarkData(data.data || data);
+    } catch (e2) { /* silently ignore if no data yet */ }
+  } catch (e) {
+    toast('Benchmark failed: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('running');
+    label.textContent = '▶ Run Benchmark';
+  }
+}
+
+// ── CONNECT / DISCONNECT SWITCH ──
+async function connectSwitch() {
+  var count = parseInt(document.getElementById('topo-count-input').value) || 1;
+  if (count < 1 || count > 20) { toast('Enter a count between 1 and 20', true); return; }
+  try {
+    var r = await post('/mgmt/switches/connect', { count: count });
+    if (r.ok) {
+      var msg = 'Connected ' + r.connected + ' switch(es)';
+      if (r.tier_status) {
+        var ts = r.tier_status;
+        msg += ' — Core ' + ts.core.used + '/' + ts.core.capacity
+             + '  Agg ' + ts.agg.used + '/' + ts.agg.capacity
+             + '  Edge ' + ts.edge.used + '/' + ts.edge.capacity;
+      }
+      toast(msg);
+      loadTopology();
+      loadOverview();
+    } else {
+      var errMsg = r.error || r.message || 'Unknown error';
+      if (r.tier_status) {
+        var ts = r.tier_status;
+        errMsg += ' — Core: ' + ts.core.used + '/' + ts.core.capacity + '  Agg: ' + ts.agg.used + '/' + ts.agg.capacity + '  Edge: ' + ts.edge.used + '/' + ts.edge.capacity;
+      }
+      // Show expand options if topology is full
+      if (r.expand_options) {
+        var expDiv = document.getElementById('topo-expand-options');
+        if (expDiv) {
+          expDiv.style.display = 'block';
+          expDiv.innerHTML = '<span style="font-size:12px;color:var(--orange);">Topology full — expand fat-tree to add more switches (requires additional controllers):</span><br><br>' +
+            r.expand_options.map(function(o) {
+              return '<button class="qa-btn" style="border-color:var(--cyan);color:var(--cyan);margin-right:8px;" onclick="expandFatTree(' + o.k + ')">'
+                   + 'Expand to k=' + o.k + ' (' + o.total_switches + ' switches, ' + o.new_controllers_needed + ' new controllers)</button>';
+            }).join('');
+        }
+      }
+      toast(errMsg, true);
+    }
+  } catch(e) { toast('Error: ' + e.message, true); }
+}
+
+async function disconnectSwitch() {
+  var dpid = parseInt(document.getElementById('topo-disc-input').value);
+  if (!dpid || dpid < 1) { toast('Enter a valid dpid', true); return; }
+  try {
+    var r = await post('/mgmt/switches/' + dpid + '/disconnect', {});
+    toast('Switch ' + dpid + (r.removed ? ' disconnected' : ' not found'));
+    loadTopology();
+    loadOverview();
+  } catch(e) { toast('Error: ' + e.message, true); }
+}
+
+// ── LINK MANAGEMENT ──
+async function addLink() {
+  var a = parseInt(document.getElementById('link-a-input').value);
+  var b = parseInt(document.getElementById('link-b-input').value);
+  if (!a || !b || a < 1 || b < 1) { toast('Enter valid dpids for both endpoints', true); return; }
+  if (a === b) { toast('Endpoints must be different', true); return; }
+  try {
+    var r = await post('/mgmt/links/add', { from: a, to: b });
+    toast(r.already_exists ? 'Link already exists' : 'Link added: ' + a + '↔' + b);
+    loadTopology();
+  } catch(e) { toast('Error: ' + e.message, true); }
+}
+
+async function removeLink() {
+  var a = parseInt(document.getElementById('link-a-input').value);
+  var b = parseInt(document.getElementById('link-b-input').value);
+  if (!a || !b || a < 1 || b < 1) { toast('Enter valid dpids for both endpoints', true); return; }
+  if (a === b) { toast('Endpoints must be different', true); return; }
+  try {
+    var r = await post('/mgmt/links/remove', { from: a, to: b });
+    toast(r.removed ? 'Link removed: ' + a + '↔' + b : 'Link not found');
+    loadTopology();
+  } catch(e) { toast('Error: ' + e.message, true); }
+}
+
+// ── FLOW POLICY ──
+async function assignFlow() {
+  var src  = document.getElementById('fp-src').value.trim();
+  var dst  = document.getElementById('fp-dst').value.trim();
+  var dscp = parseInt(document.getElementById('fp-dscp').value);
+  var algo = document.getElementById('fp-algo').value;
+  if (!src || !dst) { toast('src_ip and dst_ip required', true); return; }
+  var resEl = document.getElementById('fp-result');
+  resEl.textContent = 'Assigning…';
+  try {
+    var r = await post('/mgmt/flows/assign', { src_ip: src, dst_ip: dst, dscp: dscp, algorithm: algo });
+    if (r.ok) {
+      resEl.innerHTML = '&#10003; Algorithm: <span style="color:' + algoColor(r.algorithm) + '">' + esc(r.algorithm) + '</span>  path: ' + esc((r.path||[]).join('→'));
+      toast('Flow assigned: ' + r.algorithm);
+      loadFlows();
+    } else {
+      resEl.textContent = 'Error: ' + (r.error || 'unknown');
+      toast('Failed: ' + (r.error || ''), true);
+    }
+  } catch(e) { resEl.textContent = 'Error: ' + e.message; toast('Error: ' + e.message, true); }
+}
+
+async function loadFlows() {
+  var tbody = document.getElementById('fp-flows-body');
+  if (!tbody) return;
+  try {
+    var flows = await get('/mgmt/flows');
+    if (!flows.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="no-data">No flow assignments yet</div></td></tr>'; return; }
+    tbody.innerHTML = flows.map(function(f) {
+      return '<tr>'
+        + '<td class="mono">' + esc(f.src_ip) + '</td>'
+        + '<td class="mono">' + esc(f.dst_ip) + '</td>'
+        + '<td class="mono">' + esc(f.dscp) + '</td>'
+        + '<td><span style="color:' + algoColor(f.algorithm) + '">' + esc(f.algorithm) + '</span></td>'
+        + '<td class="mono">' + esc((f.path || []).join('→')) + '</td>'
+        + '</tr>';
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="no-data">Error: ' + esc(e.message) + '</div></td></tr>';
+  }
+}
+
+// ── CONTROLLERS ──
+async function loadControllers() {
+  try {
+    var d = await get('/mgmt/controllers/status');
+    var swT  = parseInt(document.getElementById('ctrl-sw-threshold').value) || d.switch_threshold;
+    var hsT  = parseFloat(document.getElementById('ctrl-hs-threshold').value) || d.handshake_threshold_ms;
+
+    // Render load cards
+    var cards = '';
+    (d.controllers || []).forEach(function(c) {
+      var swPct   = Math.min(100, Math.round(c.switches / swT * 100));
+      var hsPct   = c.handshake_avg_ms > 0 ? Math.min(100, Math.round(c.handshake_avg_ms / hsT * 100)) : 0;
+      var overCol = c.overloaded ? 'var(--red)' : 'var(--green)';
+      var badge   = c.overloaded
+        ? '<span class="badge badge-red" style="margin-left:8px;">OVERLOADED</span>'
+        : '<span class="badge badge-green" style="margin-left:8px;">OK</span>';
+      cards += '<div class="card" style="min-width:220px;flex:1;">' +
+        '<div class="card-title" style="color:' + overCol + ';">' + esc(c.controller_id) + badge + '</div>' +
+        '<div style="font-size:12px;color:var(--txt2);margin:8px 0 4px;">' +
+          'Switches: <strong style="color:var(--txt);">' + c.switches + '</strong> / ' + swT +
+        '</div>' +
+        '<div style="background:var(--bg2);border-radius:4px;height:6px;margin-bottom:10px;">' +
+          '<div style="background:' + overCol + ';width:' + swPct + '%;height:100%;border-radius:4px;transition:width .4s;"></div>' +
+        '</div>' +
+        '<div style="font-size:12px;color:var(--txt2);margin-bottom:4px;">' +
+          'Handshake avg: <strong style="color:var(--txt);">' + fmt(c.handshake_avg_ms, 2) + 'ms</strong> / ' + hsT + 'ms' +
+        '</div>' +
+        '<div style="background:var(--bg2);border-radius:4px;height:6px;margin-bottom:10px;">' +
+          '<div style="background:' + (hsPct > 80 ? 'var(--orange)' : 'var(--cyan)') + ';width:' + hsPct + '%;height:100%;border-radius:4px;transition:width .4s;"></div>' +
+        '</div>' +
+        kv('Sessions', c.active_sessions) +
+        kv('CPU', fmt(c.cpu_percent,1) + '%') +
+        kv('Mem', fmt(c.memory_mb,1) + ' MB') +
+        kv('dpids', esc((c.dpids||[]).join(', ') || 'all')) +
+        '</div>';
+    });
+    document.getElementById('ctrl-cards').innerHTML = cards || '<div class="no-data">No controller data</div>';
+
+    // Recommendation banner
+    var recEl = document.getElementById('ctrl-recommendation');
+    if (d.scale_out_recommended && d.recommendation) {
+      document.getElementById('ctrl-rec-reason').textContent = d.recommendation.reason;
+      var pods = '';
+      (d.recommendation.suggested_pods || []).forEach(function(p) {
+        pods += '<button class="refresh-btn" style="border-color:var(--green);color:var(--green);" ' +
+          'onclick="quickScaleOut(' + p.pod_idx + ',\'' + esc(p.suggested_id) + '\')">' +
+          '&#43; ' + esc(p.suggested_id) + ' (dpids: ' + p.dpids.join(',') + ')' +
+          '</button> ';
+      });
+      document.getElementById('ctrl-rec-pods').innerHTML = pods;
+      recEl.style.display = 'block';
+    } else {
+      recEl.style.display = 'none';
+    }
+  } catch(e) {
+    document.getElementById('ctrl-cards').innerHTML = '<div class="no-data">Error: ' + esc(e.message) + '</div>';
+  }
+}
+
+async function doScaleOut() {
+  var ctrl_id  = document.getElementById('ctrl-new-id').value.trim();
+  var pod_idx  = parseInt(document.getElementById('ctrl-pod-idx').value);
+  var resultEl = document.getElementById('ctrl-scaleout-result');
+  try {
+    var body = { pod_idx: pod_idx };
+    if (ctrl_id) body.controller_id = ctrl_id;
+    var r = await post('/mgmt/controllers/scale-out', body);
+    resultEl.style.color = r.ok ? 'var(--green)' : 'var(--red)';
+    resultEl.textContent = r.ok
+      ? '✓ ' + r.message
+      : '✗ ' + (r.error || 'failed');
+    if (r.ok) { loadControllers(); loadTopology(); }
+  } catch(e) {
+    resultEl.style.color = 'var(--red)';
+    resultEl.textContent = '✗ ' + e.message;
+  }
+}
+
+async function quickScaleOut(pod_idx, ctrl_id) {
+  document.getElementById('ctrl-pod-idx').value = pod_idx;
+  document.getElementById('ctrl-new-id').value  = ctrl_id;
+  doScaleOut();
+}
+
+// ── EXPAND FAT-TREE ──
+async function expandFatTree(k) {
+  var expDiv = document.getElementById('topo-expand-options');
+  if (expDiv) expDiv.innerHTML = '<span style="color:var(--cyan);font-size:12px;">Expanding to k=' + k + '… connecting new switches and assigning controller domains…</span>';
+  try {
+    var r = await post('/mgmt/switches/connect', { expand_k: k });
+    if (r.ok) {
+      toast('Expanded to k=' + r.new_k + ': ' + r.total_switches + ' switches, ' + r.controller_domains + ' controller domains');
+      if (expDiv) expDiv.style.display = 'none';
+      loadTopology();
+      // Also refresh controllers panel if open
+      if (typeof loadControllers === 'function') loadControllers();
+    } else {
+      toast(r.error || 'Expand failed', true);
+      if (expDiv) expDiv.innerHTML = '<span style="color:var(--red);font-size:12px;">' + esc(r.error || 'failed') + '</span>';
+    }
+  } catch(e) {
+    toast('Expand error: ' + e.message, true);
+  }
+}
+
+// ── CIPHER OVERRIDE ──
+async function selectCipher(name) {
+  // Highlight selected card
+  ['AES-256-GCM','AES-128-GCM','ChaCha20-Poly1305','auto'].forEach(function(c) {
+    var el = document.getElementById('cc-' + c);
+    if (el) el.style.outline = (c === name) ? '2px solid var(--cyan)' : '';
+  });
+  var statusEl = document.getElementById('cipher-status');
+  if (statusEl) statusEl.textContent = 'Applying…';
+  try {
+    var payload = name === 'auto' ? { cipher: 'auto' } : { cipher: name };
+    var r = await post('/mgmt/config/algorithm', payload);
+    if (r.ok !== false) {
+      if (statusEl) statusEl.textContent = '✓ ' + (name === 'auto' ? 'DSCP auto mode active' : name + ' override active');
+    } else {
+      if (statusEl) statusEl.textContent = '✗ Error: ' + esc(r.error || 'unknown');
+    }
+  } catch(e) {
+    if (statusEl) statusEl.textContent = '✗ ' + esc(e.message);
+  }
+}
+
+async function loadAlgoCipherState() {
+  try {
+    var r = await get('/mgmt/config/cipher');
+    var c = r.cipher_override;
+    ['AES-256-GCM','AES-128-GCM','ChaCha20-Poly1305','auto'].forEach(function(name) {
+      var el = document.getElementById('cc-' + name);
+      if (!el) return;
+      var active = c ? (name === c) : (name === 'auto');
+      el.style.outline = active ? '2px solid var(--cyan)' : '';
+    });
+    var statusEl = document.getElementById('cipher-status');
+    if (statusEl) statusEl.textContent = c ? ('Active override: ' + c) : 'Mode: DSCP auto (no override)';
+  } catch(_) {}
+}
+
+function _syncOvKemUI(variant) {
+  var badge = document.getElementById('ov-kem-badge');
+  if (badge) {
+    badge.textContent = variant || 'ML-KEM-1024';
+    var isMax = (!variant || variant === 'ML-KEM-1024');
+    badge.style.background = isMax ? 'rgba(6,182,212,0.15)' : 'rgba(245,158,11,0.15)';
+    badge.style.color = isMax ? 'var(--cyan)' : 'var(--orange)';
+  }
+  ['ML-KEM-1024','ML-KEM-768','ML-KEM-512'].forEach(function(v) {
+    var el = document.getElementById('ov-km-' + v);
+    if (!el) return;
+    var active = (variant === v) || (!variant && v === 'ML-KEM-1024');
+    el.style.borderColor = active ? 'var(--cyan)' : '';
+    el.style.color = active ? 'var(--cyan)' : '';
+  });
+}
+
+async function loadOvKemState() {
+  try {
+    var r = await get('/mgmt/status');
+    var variant = (r && r.override_algorithm) ? r.override_algorithm : null;
+    _syncOvKemUI(variant);
+  } catch(_) {}
+}
+
+async function ovSelectKem(variant) {
+  var statusEl = document.getElementById('ov-kem-status');
+  if (statusEl) statusEl.textContent = 'Applying — re-handshaking all switches…';
+  try {
+    var r = await post('/mgmt/config/algorithm', { override_enabled: true, algorithm: variant });
+    if (r && r.ok !== false) {
+      _syncOvKemUI(variant);
+      // Sync the Algorithm Policy panel cards if they exist
+      ['ML-KEM-1024','ML-KEM-768','ML-KEM-512'].forEach(function(v) {
+        var el = document.getElementById('ac-' + v);
+        if (el) el.style.outline = (v === variant) ? '2px solid var(--cyan)' : '';
+      });
+      if (statusEl) statusEl.textContent = '✓ ' + variant + ' active — re-handshake triggered';
+    } else {
+      if (statusEl) statusEl.textContent = '✗ ' + esc((r && r.error) || 'Error');
+    }
+  } catch(e) {
+    if (statusEl) statusEl.textContent = '✗ ' + esc(e.message);
+  }
+}
+
+// ── INIT ──
+window.addEventListener('load', function() {
+  checkConn();
+  loadOverview();
+  loadDscpTable();
+  loadTopology();
+  loadAlgoCipherState();
+  loadOvKemState();
+  setInterval(function() {
+    checkConn();
+    if (currentPanel === 'overview') { loadOverview(); loadOvKemState(); }
+    else if (currentPanel === 'topology') loadTopology();
+    else if (currentPanel === 'sessions') loadSessions();
+    else if (currentPanel === 'security-events') loadEvents();
+    else if (currentPanel === 'controllers') loadControllers();
+    else if (currentPanel === 'algo-policy') loadAlgoCipherState();
+    // Always refresh tier capacity bar regardless of active panel
+    get('/mgmt/topology/tiers').then(function(t) {
+      var tiers = t.tiers || {};
+      var c = tiers.core || {}, a = tiers.agg || {}, e = tiers.edge || {};
+      var el = document.getElementById('tier-core-status');
+      if (el) { el.textContent = 'Core ' + (c.used||0) + '/' + (c.capacity||4);
+                el.style.color = c.available === 0 ? 'var(--red)' : 'var(--cyan)'; }
+      el = document.getElementById('tier-agg-status');
+      if (el) { el.textContent = 'Agg ' + (a.used||0) + '/' + (a.capacity||8);
+                el.style.color = a.available === 0 ? 'var(--red)' : 'var(--purple)'; }
+      el = document.getElementById('tier-edge-status');
+      if (el) { el.textContent = 'Edge ' + (e.used||0) + '/' + (e.capacity||8);
+                el.style.color = e.available === 0 ? 'var(--red)' : 'var(--green)'; }
+      el = document.getElementById('tier-total-status');
+      if (el) el.textContent = ((c.used||0)+(a.used||0)+(e.used||0)) + ' / ' + (t.total_switches||20) + ' total';
+    }).catch(function(){});
+  }, 10000);
+});
+</script>
+</body>
+</html>

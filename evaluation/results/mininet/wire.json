@@ -1,0 +1,482 @@
+[
+ {
+  "config": "plain",
+  "rep": 0,
+  "bytes_up": 128,
+  "bytes_down": 112,
+  "segs_up": 3,
+  "segs_down": 4
+ },
+ {
+  "config": "plain",
+  "rep": 1,
+  "bytes_up": 128,
+  "bytes_down": 112,
+  "segs_up": 3,
+  "segs_down": 4
+ },
+ {
+  "config": "plain",
+  "rep": 2,
+  "bytes_up": 128,
+  "bytes_down": 112,
+  "segs_up": 3,
+  "segs_down": 4
+ },
+ {
+  "config": "plain",
+  "rep": 3,
+  "bytes_up": 128,
+  "bytes_down": 112,
+  "segs_up": 3,
+  "segs_down": 4
+ },
+ {
+  "config": "plain",
+  "rep": 4,
+  "bytes_up": 128,
+  "bytes_down": 112,
+  "segs_up": 3,
+  "segs_down": 4
+ },
+ {
+  "config": "plain",
+  "rep": 5,
+  "bytes_up": 128,
+  "bytes_down": 112,
+  "segs_up": 3,
+  "segs_down": 4
+ },
+ {
+  "config": "plain",
+  "rep": 6,
+  "bytes_up": 128,
+  "bytes_down": 112,
+  "segs_up": 3,
+  "segs_down": 4
+ },
+ {
+  "config": "plain",
+  "rep": 7,
+  "bytes_up": 128,
+  "bytes_down": 112,
+  "segs_up": 3,
+  "segs_down": 4
+ },
+ {
+  "config": "plain",
+  "rep": 8,
+  "bytes_up": 128,
+  "bytes_down": 112,
+  "segs_up": 3,
+  "segs_down": 4
+ },
+ {
+  "config": "plain",
+  "rep": 9,
+  "bytes_up": 128,
+  "bytes_down": 112,
+  "segs_up": 3,
+  "segs_down": 4
+ },
+ {
+  "config": "tls_classical",
+  "rep": 0,
+  "bytes_up": 1024,
+  "bytes_down": 1007,
+  "segs_up": 5,
+  "segs_down": 3
+ },
+ {
+  "config": "tls_classical",
+  "rep": 1,
+  "bytes_up": 1024,
+  "bytes_down": 1008,
+  "segs_up": 5,
+  "segs_down": 3
+ },
+ {
+  "config": "tls_classical",
+  "rep": 2,
+  "bytes_up": 1024,
+  "bytes_down": 1008,
+  "segs_up": 5,
+  "segs_down": 3
+ },
+ {
+  "config": "tls_classical",
+  "rep": 3,
+  "bytes_up": 1024,
+  "bytes_down": 1008,
+  "segs_up": 5,
+  "segs_down": 3
+ },
+ {
+  "config": "tls_classical",
+  "rep": 4,
+  "bytes_up": 1026,
+  "bytes_down": 1007,
+  "segs_up": 5,
+  "segs_down": 3
+ },
+ {
+  "config": "tls_classical",
+  "rep": 5,
+  "bytes_up": 1024,
+  "bytes_down": 1008,
+  "segs_up": 5,
+  "segs_down": 3
+ },
+ {
+  "config": "tls_classical",
+  "rep": 6,
+  "bytes_up": 1025,
+  "bytes_down": 1007,
+  "segs_up": 5,
+  "segs_down": 3
+ },
+ {
+  "config": "tls_classical",
+  "rep": 7,
+  "bytes_up": 1024,
+  "bytes_down": 1008,
+  "segs_up": 5,
+  "segs_down": 3
+ },
+ {
+  "config": "tls_classical",
+  "rep": 8,
+  "bytes_up": 1024,
+  "bytes_down": 1008,
+  "segs_up": 5,
+  "segs_down": 3
+ },
+ {
+  "config": "tls_classical",
+  "rep": 9,
+  "bytes_up": 1025,
+  "bytes_down": 1008,
+  "segs_up": 5,
+  "segs_down": 3
+ },
+ {
+  "config": "pqtls_hybrid",
+  "rep": 0,
+  "bytes_up": 10564,
+  "bytes_down": 10460,
+  "segs_up": 11,
+  "segs_down": 10
+ },
+ {
+  "config": "pqtls_hybrid",
+  "rep": 1,
+  "bytes_up": 10564,
+  "bytes_down": 10460,
+  "segs_up": 11,
+  "segs_down": 10
+ },
+ {
+  "config": "pqtls_hybrid",
+  "rep": 2,
+  "bytes_up": 10564,
+  "bytes_down": 10460,
+  "segs_up": 11,
+  "segs_down": 10
+ },
+ {
+  "config": "pqtls_hybrid",
+  "rep": 3,
+  "bytes_up": 10564,
+  "bytes_down": 10460,
+  "segs_up": 11,
+  "segs_down": 10
+ },
+ {
+  "config": "pqtls_hybrid",
+  "rep": 4,
+  "bytes_up": 10564,
+  "bytes_down": 10460,
+  "segs_up": 11,
+  "segs_down": 10
+ },
+ {
+  "config": "pqtls_hybrid",
+  "rep": 5,
+  "bytes_up": 10564,
+  "bytes_down": 10460,
+  "segs_up": 11,
+  "segs_down": 10
+ },
+ {
+  "config": "pqtls_hybrid",
+  "rep": 6,
+  "bytes_up": 10564,
+  "bytes_down": 10460,
+  "segs_up": 11,
+  "segs_down": 10
+ },
+ {
+  "config": "pqtls_hybrid",
+  "rep": 7,
+  "bytes_up": 10564,
+  "bytes_down": 10460,
+  "segs_up": 11,
+  "segs_down": 10
+ },
+ {
+  "config": "pqtls_hybrid",
+  "rep": 8,
+  "bytes_up": 10564,
+  "bytes_down": 10460,
+  "segs_up": 11,
+  "segs_down": 10
+ },
+ {
+  "config": "pqtls_hybrid",
+  "rep": 9,
+  "bytes_up": 10564,
+  "bytes_down": 10460,
+  "segs_up": 11,
+  "segs_down": 10
+ },
+ {
+  "config": "pqtls_l5",
+  "rep": 0,
+  "bytes_up": 14192,
+  "bytes_down": 14184,
+  "segs_up": 14,
+  "segs_down": 14
+ },
+ {
+  "config": "pqtls_l5",
+  "rep": 1,
+  "bytes_up": 14192,
+  "bytes_down": 14184,
+  "segs_up": 14,
+  "segs_down": 14
+ },
+ {
+  "config": "pqtls_l5",
+  "rep": 2,
+  "bytes_up": 14230,
+  "bytes_down": 14184,
+  "segs_up": 15,
+  "segs_down": 14
+ },
+ {
+  "config": "pqtls_l5",
+  "rep": 3,
+  "bytes_up": 14192,
+  "bytes_down": 14184,
+  "segs_up": 14,
+  "segs_down": 14
+ },
+ {
+  "config": "pqtls_l5",
+  "rep": 4,
+  "bytes_up": 14192,
+  "bytes_down": 14184,
+  "segs_up": 14,
+  "segs_down": 14
+ },
+ {
+  "config": "pqtls_l5",
+  "rep": 5,
+  "bytes_up": 14192,
+  "bytes_down": 14184,
+  "segs_up": 14,
+  "segs_down": 14
+ },
+ {
+  "config": "pqtls_l5",
+  "rep": 6,
+  "bytes_up": 14192,
+  "bytes_down": 14184,
+  "segs_up": 14,
+  "segs_down": 14
+ },
+ {
+  "config": "pqtls_l5",
+  "rep": 7,
+  "bytes_up": 14192,
+  "bytes_down": 14184,
+  "segs_up": 14,
+  "segs_down": 14
+ },
+ {
+  "config": "pqtls_l5",
+  "rep": 8,
+  "bytes_up": 14192,
+  "bytes_down": 14184,
+  "segs_up": 14,
+  "segs_down": 14
+ },
+ {
+  "config": "pqtls_l5",
+  "rep": 9,
+  "bytes_up": 14192,
+  "bytes_down": 14184,
+  "segs_up": 14,
+  "segs_down": 14
+ },
+ {
+  "config": "pqtls_l5_chain",
+  "rep": 0,
+  "bytes_up": 21693,
+  "bytes_down": 21685,
+  "segs_up": 21,
+  "segs_down": 19
+ },
+ {
+  "config": "pqtls_l5_chain",
+  "rep": 1,
+  "bytes_up": 21693,
+  "bytes_down": 21685,
+  "segs_up": 21,
+  "segs_down": 19
+ },
+ {
+  "config": "pqtls_l5_chain",
+  "rep": 2,
+  "bytes_up": 21693,
+  "bytes_down": 21685,
+  "segs_up": 21,
+  "segs_down": 19
+ },
+ {
+  "config": "pqtls_l5_chain",
+  "rep": 3,
+  "bytes_up": 21693,
+  "bytes_down": 21707,
+  "segs_up": 21,
+  "segs_down": 20
+ },
+ {
+  "config": "pqtls_l5_chain",
+  "rep": 4,
+  "bytes_up": 21693,
+  "bytes_down": 21685,
+  "segs_up": 21,
+  "segs_down": 19
+ },
+ {
+  "config": "pqtls_l5_chain",
+  "rep": 5,
+  "bytes_up": 21693,
+  "bytes_down": 21685,
+  "segs_up": 21,
+  "segs_down": 19
+ },
+ {
+  "config": "pqtls_l5_chain",
+  "rep": 6,
+  "bytes_up": 21693,
+  "bytes_down": 21685,
+  "segs_up": 21,
+  "segs_down": 19
+ },
+ {
+  "config": "pqtls_l5_chain",
+  "rep": 7,
+  "bytes_up": 21693,
+  "bytes_down": 21707,
+  "segs_up": 21,
+  "segs_down": 20
+ },
+ {
+  "config": "pqtls_l5_chain",
+  "rep": 8,
+  "bytes_up": 21693,
+  "bytes_down": 21685,
+  "segs_up": 21,
+  "segs_down": 19
+ },
+ {
+  "config": "pqtls_l5_chain",
+  "rep": 9,
+  "bytes_up": 21693,
+  "bytes_down": 21685,
+  "segs_up": 21,
+  "segs_down": 19
+ },
+ {
+  "config": "proposed",
+  "rep": 0,
+  "bytes_up": 10082,
+  "bytes_down": 10171,
+  "segs_up": 12,
+  "segs_down": 13
+ },
+ {
+  "config": "proposed",
+  "rep": 1,
+  "bytes_up": 10082,
+  "bytes_down": 10171,
+  "segs_up": 12,
+  "segs_down": 13
+ },
+ {
+  "config": "proposed",
+  "rep": 2,
+  "bytes_up": 10082,
+  "bytes_down": 10171,
+  "segs_up": 12,
+  "segs_down": 13
+ },
+ {
+  "config": "proposed",
+  "rep": 3,
+  "bytes_up": 10082,
+  "bytes_down": 10171,
+  "segs_up": 12,
+  "segs_down": 13
+ },
+ {
+  "config": "proposed",
+  "rep": 4,
+  "bytes_up": 10082,
+  "bytes_down": 10171,
+  "segs_up": 12,
+  "segs_down": 13
+ },
+ {
+  "config": "proposed",
+  "rep": 5,
+  "bytes_up": 10081,
+  "bytes_down": 10167,
+  "segs_up": 12,
+  "segs_down": 13
+ },
+ {
+  "config": "proposed",
+  "rep": 6,
+  "bytes_up": 10082,
+  "bytes_down": 10171,
+  "segs_up": 12,
+  "segs_down": 13
+ },
+ {
+  "config": "proposed",
+  "rep": 7,
+  "bytes_up": 10082,
+  "bytes_down": 10171,
+  "segs_up": 12,
+  "segs_down": 13
+ },
+ {
+  "config": "proposed",
+  "rep": 8,
+  "bytes_up": 10082,
+  "bytes_down": 10171,
+  "segs_up": 12,
+  "segs_down": 13
+ },
+ {
+  "config": "proposed",
+  "rep": 9,
+  "bytes_up": 10082,
+  "bytes_down": 10171,
+  "segs_up": 12,
+  "segs_down": 13
+ }
+]

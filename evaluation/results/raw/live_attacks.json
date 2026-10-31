@@ -1,0 +1,146 @@
+[
+ {
+  "scenario": "passive_capture_hndl",
+  "defense": "ML-KEM + AEAD",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 100,
+  "conn_closed": 0,
+  "note": ""
+ },
+ {
+  "scenario": "inject_unparseable_length",
+  "defense": "fail-closed framing",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 100,
+  "conn_closed": 100,
+  "note": ""
+ },
+ {
+  "scenario": "inject_forged_frame",
+  "defense": "AEAD tag",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 100,
+  "conn_closed": 100,
+  "note": ""
+ },
+ {
+  "scenario": "ciphertext_bitflip",
+  "defense": "AEAD tag",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 0,
+  "conn_closed": 100,
+  "note": ""
+ },
+ {
+  "scenario": "header_seq_tamper",
+  "defense": "seq/epoch in AAD",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 0,
+  "conn_closed": 100,
+  "note": ""
+ },
+ {
+  "scenario": "cipher_id_rewrite",
+  "defense": "per-cipher keys",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 0,
+  "conn_closed": 100,
+  "note": ""
+ },
+ {
+  "scenario": "replay",
+  "defense": "monotonic sequence",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 100,
+  "conn_closed": 100,
+  "note": ""
+ },
+ {
+  "scenario": "reorder",
+  "defense": "monotonic sequence",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 100,
+  "conn_closed": 100,
+  "note": ""
+ },
+ {
+  "scenario": "legacy_mode_downgrade",
+  "defense": "legacy mode disabled",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 100,
+  "conn_closed": 100,
+  "note": ""
+ },
+ {
+  "scenario": "mitm_kem_ct_substitution",
+  "defense": "transcript-bound ML-DSA-87 signature",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 100,
+  "conn_closed": 100,
+  "note": "handshake aborted"
+ },
+ {
+  "scenario": "mitm_impersonation_pinned",
+  "defense": "certificate pinning",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 100,
+  "conn_closed": 100,
+  "note": "plaintext_exposed=False tampered_reached_ctrl=False"
+ },
+ {
+  "scenario": "mitm_impersonation_unpinned",
+  "defense": "none (pinning disabled)",
+  "trials": 100,
+  "attack_success": 100,
+  "legit_ok": 100,
+  "conn_closed": 0,
+  "note": "plaintext_exposed=True tampered_reached_ctrl=False"
+ },
+ {
+  "scenario": "dscp_remark_downgrade",
+  "defense": "per-flow DSCP baseline",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 100,
+  "conn_closed": 0,
+  "note": "wire cipher_ids=[0, 0, 0, 0] downgrade_events+=3"
+ },
+ {
+  "scenario": "rogue_switch_unauthorized_key",
+  "defense": "switch allowlist (mutual auth)",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 100,
+  "conn_closed": 100,
+  "note": ""
+ },
+ {
+  "scenario": "rogue_switch_no_auth",
+  "defense": "mandatory ClientAuth (mutual auth)",
+  "trials": 100,
+  "attack_success": 0,
+  "legit_ok": 100,
+  "conn_closed": 100,
+  "note": ""
+ },
+ {
+  "scenario": "rogue_switch_mutual_off",
+  "defense": "none (mutual auth disabled)",
+  "trials": 100,
+  "attack_success": 100,
+  "legit_ok": 100,
+  "conn_closed": 0,
+  "note": ""
+ }
+]

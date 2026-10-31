@@ -1,0 +1,22 @@
+{
+ "started": "2026-10-25 23:41:48",
+ "pilot": false,
+ "reps": 10,
+ "configs": [
+  "plain",
+  "tls_classical",
+  "pqtls_hybrid",
+  "pqtls_l5",
+  "pqtls_l5_chain",
+  "proposed"
+ ],
+ "exps": [
+  "wire",
+  "rtt",
+  "storm",
+  "arrival",
+  "flood",
+  "ta"
+ ],
+ "finished": "2026-10-26 01:57:21"
+}

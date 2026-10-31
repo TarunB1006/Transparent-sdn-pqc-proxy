@@ -1,0 +1,57 @@
+# PQC-SDN Platform — default configuration
+
+environment: development
+
+logging:
+  level: INFO
+  format: "%(asctime)s %(levelname)s [%(name)s] %(message)s"
+
+crypto:
+  require_liboqs: false
+  control_plane_kem: ML-KEM-1024
+  onboarding_kem: ML-KEM-512
+  key_refresh_kem: ML-KEM-768
+  bulk_cipher: AES-256-GCM
+  padding_block_size: 256
+
+session:
+  max_timestamp_skew_seconds: 30
+  key_refresh_interval_seconds: 86400
+  key_refresh_volume_bytes: 107374182400
+  ratchet_interval_messages: 1000
+
+proxy:
+  listen_host: "0.0.0.0"
+  base_data_port: 6634
+  controller_host: "127.0.0.1"
+  controller_port: 6652       # switch proxies connect here (ctrl_proxy)
+  ctrl_proxy_port: 6652       # ctrl_proxy listens here
+  ryu_port: 6653              # ctrl_proxy forwards to Ryu here
+  controller_api_port: 8080
+  plan_poll_interval_seconds: 0.5
+  read_buffer_size: 65536
+
+metrics:
+  host: "0.0.0.0"
+  port: 9101
+
+routing:
+  link_capacity_bps: 10000000
+  utilization_weight: 0.7
+  crypto_overhead_weight: 0.3
+
+controller:
+  key_refresh_poll_seconds: 30
+  key_refresh_ttl_seconds: 60
+  port_stats_interval_seconds: 5
+
+adaptive:
+  enabled: true             # CPU/latency-driven symmetric cipher selection (ChaCha20 under load, DSCP auto otherwise)
+  cpu_high_pct: 85.0        # downgrade trigger (percent)
+  cpu_low_pct: 40.0         # upgrade trigger (percent)
+  latency_high_ms: 5.0      # downgrade trigger (ms)
+  latency_low_ms: 1.0       # upgrade trigger (ms)
+  queue_depth_high: 20      # downgrade trigger (in-flight handshakes)
+  queue_depth_low: 5        # upgrade trigger
+  hold_seconds: 10.0        # minimum seconds between transitions (hysteresis)
+  poll_interval_seconds: 2.0
